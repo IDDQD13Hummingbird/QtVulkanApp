@@ -1,4 +1,5 @@
 #include "RenderWindow.h"
+#include "vktriangle.h"
 #include <QVulkanFunctions>
 #include <QFile>
 
@@ -7,13 +8,6 @@
 // NB 1: Vulkan's near/far plane (Z axis) is at 0/1 instead of -1/1, as in OpenGL!
 // NB 2: Vulkan Y is negated in clip space so we fix that when making the projection matrix
 // **PLAY WITH THIS**
-static float vertexData[] = {
-    // Y up, front = CCW
-    // X,     Y,     Z,     R,    G,    B
-    0.0f,   0.5f,  0.0f,   1.0f, 0.0f, 0.0f,    //top vertex - red
-    -0.5f,  -0.5f, 0.0f,   0.0f, 1.0f, 0.0f,    //bottom left vertex - green
-    0.5f,  -0.5f,  0.0f,   0.0f, 0.0f, 1.0f     //bottom right vertex - blue
-};
 
 //Utility variable and function for alignment:
 static const int UNIFORM_DATA_SIZE = 16 * sizeof(float); //our MVP matrix contains 16 floats
@@ -40,12 +34,91 @@ RenderWindow::RenderWindow(QVulkanWindow *w, bool msaa)
         }
     }
 }
+void RenderWindow::createBuffer(VkDevice logicalDevice,
+                                const VkDeviceSize uniAlign,
+                                VisualObject* visualObject,
+                                VkBufferUsageFlags usage)
+{
+    VkBufferCreateInfo bufferInfo{};
+    memset(&bufferInfo, 0, sizeof(bufferInfo)); //Clear out the memory
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; // Set the structure type
+
+
+    // Layout is just the vertex data
+    // start offset aligned to uniAlign.
+
+
+    VkDeviceSize vertexAllocSize = aligned(visualObject->getVertices().size()*sizeof(Vertex), uniAlign);
+    bufferInfo.size = vertexAllocSize; //One vertex buffer (we don't use Uniform buffer in this example)
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; // Set the usage vertex buffer (not using Uniform buffer in this example)
+
+    VkResult err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &visualObject->mBuffer);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create buffer: %d", err);
+
+
+    VkMemoryRequirements memReq;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, visualObject->mBuffer, &memReq);
+
+
+    VkMemoryAllocateInfo memAllocInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        nullptr,
+        memReq.size,
+        mWindow->hostVisibleMemoryIndex()
+    };
+
+
+    err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &memAllocInfo, nullptr, &visualObject->mBufferMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate memory: %d", err);
+
+
+    err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, visualObject->mBuffer, visualObject->mBufferMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind buffer memory: %d", err);
+
+
+    quint8* p{nullptr};
+    err = mDeviceFunctions->vkMapMemory(logicalDevice, visualObject->mBufferMemory, 0, memReq.size, 0, reinterpret_cast<void **>(&p));
+    if (err != VK_SUCCESS)
+        qFatal("Failed to map memory: %d", err);
+    // Dag 170125
+    // memcpy(p, vertexData, sizeof(vertexData));
+    memcpy(p, visualObject->getVertices().data(), visualObject->getVertices().size()*sizeof(Vertex));
+
+
+    mDeviceFunctions->vkUnmapMemory(logicalDevice, visualObject->mBufferMemory);
+}
 
 void RenderWindow::initResources()
 {
+    VkDevice logicalDevice = mWindow->device();
+    mDeviceFunctions =
+        mWindow->vulkanInstance()->deviceFunctions(logicalDevice);
+
+
+    const int concurrentFrameCount =
+        mWindow->concurrentFrameCount(); // 2 on Oles Machine
+    const VkPhysicalDeviceLimits *pdevLimits =
+        &mWindow->physicalDeviceProperties()->limits;
+    const VkDeviceSize uniAlign =
+        pdevLimits->minUniformBufferOffsetAlignment;
+    qDebug("uniform buffer offset alignment is %u", (uint)uniAlign);
+
+
+    VkBufferCreateInfo bufferInfo{};
+    memset(&bufferInfo, 0, sizeof(bufferInfo));
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+
+
+        for (auto it=mObjects.begin(); it!=mObjects.end(); it++)
+    {
+        createBuffer(logicalDevice, uniAlign, *it);
+    }
+
     qDebug("\n ***************************** initResources ******************************************* \n");
 
-    VkDevice logicalDevice = mWindow->device();
     mDeviceFunctions = mWindow->vulkanInstance()->deviceFunctions(logicalDevice);
 
     /* Prepare the vertex and uniform data.The vertex data will never
@@ -64,10 +137,9 @@ void RenderWindow::initResources()
     limit is not sufficient, the per-frame buffers, as shown below, will
     become necessary.
     */
-    const int concurrentFrameCount = mWindow->concurrentFrameCount(); // 2 on Oles Machine
-    const VkPhysicalDeviceLimits *pdevLimits = &mWindow->physicalDeviceProperties()->limits;
-    const VkDeviceSize uniAlign = pdevLimits->minUniformBufferOffsetAlignment;
-	qDebug("uniform buffer offset alignment is %u", (uint)uniAlign); //64 on Oles machine
+
+
+    qDebug("uniform buffer offset alignment is %u", (uint)uniAlign); //64 on Oles machine
 
     VkBufferCreateInfo bufInfo;
 	memset(&bufInfo, 0, sizeof(bufInfo)); //Clear out the memory
@@ -75,9 +147,9 @@ void RenderWindow::initResources()
 
     // Our internal layout is vertex, uniform, uniform, ... with each uniform buffer 
     // start offset aligned to uniAlign.
-    const VkDeviceSize vertexAllocSize = aligned(sizeof(vertexData), uniAlign);
+    VkDeviceSize vertexAllocSize = aligned(mTriangle.getVertices().size()*sizeof(Vertex), uniAlign);
     const VkDeviceSize uniformAllocSize = aligned(UNIFORM_DATA_SIZE, uniAlign);
-	bufInfo.size = vertexAllocSize + concurrentFrameCount * uniformAllocSize; //One vertex buffer and two uniform buffers
+    bufInfo.size = vertexAllocSize + concurrentFrameCount * uniformAllocSize; //One vertex buffer and two uniform buffers
 	bufInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT; // Set the usage to both vertex buffer and uniform buffer
 
     VkResult err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &bufInfo, nullptr, &mBuffer);
@@ -106,7 +178,11 @@ void RenderWindow::initResources()
     err = mDeviceFunctions->vkMapMemory(logicalDevice, mBufferMemory, 0, memReq.size, 0, reinterpret_cast<void **>(&p));
     if (err != VK_SUCCESS)
         qFatal("Failed to map memory: %d", err);
-    memcpy(p, vertexData, sizeof(vertexData));
+    //memcpy(p, vertexData, sizeof(vertexData));
+    // Dag 170125
+    qDebug()<< mTriangle.getVertices().size()*sizeof(Vertex);
+    memcpy(p, mTriangle.getVertices().data(), mTriangle.getVertices().size()*sizeof(Vertex));
+
     QMatrix4x4 ident;
     memset(mUniformBufferInfo, 0, sizeof(mUniformBufferInfo));
     for (int i = 0; i < concurrentFrameCount; ++i) {
@@ -123,9 +199,10 @@ void RenderWindow::initResources()
     //The size of each vertex to be passed to the shader
     VkVertexInputBindingDescription vertexBindingDesc = {
         0, // binding - has to match that in VkVertexInputAttributeDescription and startNextFrame()s m_devFuncs->vkCmdBindVertexBuffers
-        6 * sizeof(float), // stride account for X, Y, Z, R, G, B
+        sizeof(Vertex), // stride account for X, Y, Z, R, G, B, U, V
         VK_VERTEX_INPUT_RATE_VERTEX
     };
+
 
     /********************************* Shader bindings: *********************************/
     //Descritpion of the attributes used in the shader
@@ -263,6 +340,8 @@ void RenderWindow::initResources()
     memset(&ia, 0, sizeof(ia));
     ia.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
     ia.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
+    //LINE_STRIP - opg 1 + 2
+    //TRIANGLE_LIST - opg 3
     pipelineInfo.pInputAssemblyState = &ia;
 
     // The viewport and scissor will be set dynamically via vkCmdSetViewport/Scissor.
@@ -350,7 +429,7 @@ void RenderWindow::initSwapChainResources()
     mProjectionMatrix.perspective(25.0f,          sz.width() / (float) sz.height(), 0.01f, 100.0f);
     //Camera is -4 away from origo
     /**PLAY WITH THIS**/
-    mProjectionMatrix.translate(0, 0, -4);
+    mProjectionMatrix.translate(0, 0, -6);
 
     //Flip projection because of Vulkan's -Y axis
     mProjectionMatrix.scale(1.0f, -1.0f, 1.0);
@@ -403,7 +482,7 @@ void RenderWindow::startNextFrame()
 
     //rotate the triangle 1 degree per frame
     /**PLAY WITH THIS**/
-    mRotation += 1.0f;
+    mRotation += 0.0f;
 
     mDeviceFunctions->vkCmdBindPipeline(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline);
     mDeviceFunctions->vkCmdBindDescriptorSets(cb, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
@@ -430,7 +509,7 @@ void RenderWindow::startNextFrame()
 
     /********************************* Our draw call!: *********************************/
     // the number 3 is the number of vertices, so you have to change that if you add more!
-    mDeviceFunctions->vkCmdDraw(cb, 3, 1, 0, 0);
+        mDeviceFunctions->vkCmdDraw(cmdBuf, mTriangle.getVertices().size(), 1, 0, 0);
 
     mDeviceFunctions->vkCmdEndRenderPass(cmdBuf);
 
