@@ -12,7 +12,10 @@
 #include "Triangle.h"
 #include "TriangleSurface.h"
 #include "VisualObject.h"
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:Render.h
+=======
+>>>>>>> Stashed changes
 
 class Renderer : public QVulkanWindowRenderer
 {
@@ -96,4 +99,7 @@ private:
 };
 
 #endif // RENDER_H
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:Render.h
+=======
+>>>>>>> Stashed changes

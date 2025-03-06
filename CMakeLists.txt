@@ -12,6 +12,7 @@ qt_add_executable(QtVulkanApp
 
     VulkanWindow.h VulkanWindow.cpp
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
     vktriangle.h vktriangle.cpp
     Vertex.h
     Vertex.cpp
@@ -21,6 +22,8 @@ qt_add_executable(QtVulkanApp
     oppg2.h oppg2.cpp
     oppg3.h oppg3.cpp
 =======
+=======
+>>>>>>> Stashed changes
     TriangleSurface.h TriangleSurface.cpp
     VisualObject.h VisualObject.cpp
     Vertex.h Vertex.cpp
@@ -28,6 +31,9 @@ qt_add_executable(QtVulkanApp
     Triangle.h Triangle.cpp
 
 
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 )
 # Define the shader files

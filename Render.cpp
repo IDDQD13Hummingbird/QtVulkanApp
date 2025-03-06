@@ -1,9 +1,13 @@
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:RenderWindow.cpp
 #include "RenderWindow.h"
 #include "vktriangle.h"
 =======
 #include "Render.h"
 >>>>>>> Stashed changes:Render.cpp
+=======
+#include "Render.h"
+>>>>>>> Stashed changes
 #include <QVulkanFunctions>
 #include <QFile>
 
@@ -59,7 +63,10 @@ void RenderWindow::createBuffer(VkDevice logicalDevice,
 }
 
 void Renderer::initResources()
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:Render.cpp
+=======
+>>>>>>> Stashed changes
 {
     VkBufferCreateInfo bufferInfo{};
     memset(&bufferInfo, 0, sizeof(bufferInfo)); //Clear out the memory
@@ -435,12 +442,17 @@ void RenderWindow::initResources()
     getVulkanHWInfo();
 }
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:RenderWindow.cpp
 void RenderWindow::initSwapChainResources()
 =======
 // This function is called at startup and when the app window is resized
 void Renderer::initSwapChainResources()
 >>>>>>> Stashed changes:Render.cpp
+=======
+// This function is called at startup and when the app window is resized
+void Renderer::initSwapChainResources()
+>>>>>>> Stashed changes
 {
     qDebug("\n ***************************** initSwapChainResources ******************************************* \n");
 
@@ -464,10 +476,13 @@ void Renderer::initSwapChainResources()
 
 void Renderer::startNextFrame()
 {
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:RenderWindow.cpp
     VkDevice dev = mWindow->device();
     VkCommandBuffer cb = mWindow->currentCommandBuffer();
 =======
+=======
+>>>>>>> Stashed changes
     //std::vector<VisualObject*> mObjects;
     //std::unordered_map<std::string, VisualObject*> mMap;
     VkCommandBuffer cmdBuf = mWindow->currentCommandBuffer();
@@ -585,9 +600,12 @@ VkShaderModule Renderer::createShader(const QString &name)
     return shaderModule;
 }
 
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream:RenderWindow.cpp
 void RenderWindow::getVulkanHWInfo()
 =======
+=======
+>>>>>>> Stashed changes
 void Renderer::setModelMatrix(QMatrix4x4 modelMatrix)
 {
 
@@ -644,7 +662,10 @@ void Renderer::createBuffer(VkDevice logicalDevice, const VkDeviceSize uniAlign,
 }
 
 void Renderer::getVulkanHWInfo()
+<<<<<<< Updated upstream
 >>>>>>> Stashed changes:Render.cpp
+=======
+>>>>>>> Stashed changes
 {
     qDebug("\n ***************************** Vulkan Hardware Info ******************************************* \n");
     QVulkanInstance *inst = mWindow->vulkanInstance();

@@ -4,6 +4,7 @@
 
 VulkanWindow::VulkanWindow()
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 {  }
 
 QVulkanWindowRenderer* VulkanWindow::createRenderer()
@@ -16,6 +17,13 @@ QVulkanWindowRenderer* VulkanWindow::createRenderer()
 
 QVulkanWindowRenderer* VulkanWindow::createRenderer()
 {
+=======
+{
+}
+
+QVulkanWindowRenderer* VulkanWindow::createRenderer()
+{
+>>>>>>> Stashed changes
     //Makes a new instance of the Renderer (our Renderer) class
     mRenderer = new Renderer(this, true); // last true == try MSAA
 
@@ -36,6 +44,9 @@ void VulkanWindow::setCameraSpeed(float value)
         mCameraSpeed = 0.01f;
     if (mCameraSpeed > 0.3f)
         mCameraSpeed = 0.3f;
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }
 
@@ -44,8 +55,11 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_A)
     {
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
         qDebug("I pressed the A button");
 =======
+=======
+>>>>>>> Stashed changes
         //dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(-0.1f);
         if(mSelectedObject)
         {
@@ -61,6 +75,9 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
 =======
         qDebug("Scaling object");
         dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->scale(0.9f);
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
     }
     if (event->key() == Qt::Key_Escape)
@@ -252,5 +269,8 @@ void VulkanWindow::handleInput()
         if (mInput.E)
             mCamera->updateHeigth(-mCameraSpeed);
     }
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 }

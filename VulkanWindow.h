@@ -6,6 +6,9 @@
 =======
 #include "VisualObject.h"
 #include "Input.h"
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 
 /*The QVulkanWindow subclass reimplements the factory function QVulkanWindow::createRenderer().
@@ -23,10 +26,15 @@ public:
 
     QVulkanWindowRenderer* createRenderer() override;
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
 =======
+=======
+>>>>>>> Stashed changes
     QVulkanWindowRenderer* getRenderer() const { return mRenderer; }
     void setSelectedObject(VisualObject* object) { mSelectedObject = object; }
 >>>>>>> Stashed changes
+
+    void handleInput();
 
     void handleInput();
 
@@ -36,6 +44,7 @@ signals:
 protected:
     //The QVulkanWindow is a QWindow that we inherit from and have these functions
     // to capture mouse and keyboard.
+<<<<<<< Updated upstream
 <<<<<<< Updated upstream
     // Uncomment to use (you also have to make the definitions of
     // these functions in the cpp-file to use them of course!)
@@ -54,6 +63,15 @@ protected:
     void keyReleaseEvent(QKeyEvent *event) override;
     void wheelEvent(QWheelEvent *event) override;
 
+=======
+    void mousePressEvent(QMouseEvent *event) override;
+    void mouseReleaseEvent(QMouseEvent *event) override;
+    void mouseMoveEvent(QMouseEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
+    void keyReleaseEvent(QKeyEvent *event) override;
+    void wheelEvent(QWheelEvent *event) override;
+
+>>>>>>> Stashed changes
     QVulkanWindowRenderer* mRenderer{ nullptr };
     VisualObject* mSelectedObject{ nullptr };
     int mIndex{0};
@@ -67,6 +85,9 @@ private:
     int mMouseYlast{0};
 
     class Camera* mCamera{ nullptr };
+<<<<<<< Updated upstream
+>>>>>>> Stashed changes
+=======
 >>>>>>> Stashed changes
 };
 

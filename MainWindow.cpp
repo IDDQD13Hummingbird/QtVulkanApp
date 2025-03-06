@@ -9,6 +9,11 @@
 #include <QTabWidget>
 #include "VulkanWindow.h"
 <<<<<<< Updated upstream
+<<<<<<< Updated upstream
+=======
+#include "Render.h"
+#include "TriangleSurface.h"
+>>>>>>> Stashed changes
 =======
 #include "Render.h"
 #include "TriangleSurface.h"

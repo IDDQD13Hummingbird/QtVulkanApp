@@ -1,6 +1,9 @@
 #include "Vertex.h"
 #include <QtMath>
+<<<<<<< Updated upstream
 
+=======
+>>>>>>> Stashed changes
 
 std::ostream& operator<< (std::ostream& os, const Vertex& v) {
 	os << std::fixed;
