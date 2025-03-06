@@ -91,6 +91,10 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_X)
     {
     }
+    if(event->key() == Qt::Key_R)
+    {
+        mInput.R = true;
+    }
     if(event->key() == Qt::Key_Up)
     {
         mInput.UP = true;
@@ -140,6 +144,10 @@ void VulkanWindow::keyReleaseEvent(QKeyEvent *event)
     }
     if(event->key() == Qt::Key_X)
     {
+    }
+    if(event->key() == Qt::Key_R)
+    {
+        mInput.R = false;
     }
     if(event->key() == Qt::Key_Up)
     {
@@ -217,12 +225,15 @@ void VulkanWindow::handleInput()
 {
     //Camera
     mCamera->setSpeed(0.f);  //cancel last frame movement
-    if (mInput.RMB)
     {
-        if (mInput.W)
+        if (mInput.U)
             mCamera->setSpeed(mCameraSpeed);
-        if (mInput.S)
+        if (mInput.O)
             mCamera->setSpeed(-mCameraSpeed);
+        if (mInput.S)
+            mCamera->moveUp(mCameraSpeed);
+        if (mInput.W)
+            mCamera->moveUp(-mCameraSpeed);
         if (mInput.D)
             mCamera->moveRight(-mCameraSpeed);
         if (mInput.A)
@@ -232,4 +243,11 @@ void VulkanWindow::handleInput()
         if (mInput.E)
             mCamera->updateHeigth(-mCameraSpeed);
     }
+    if(!mInput.RMB)
+    {
+        if (mInput.R)
+            dynamic_cast<Renderer*>(mRenderer)->mCamera.yaw(0);
+            dynamic_cast<Renderer*>(mRenderer)->mCamera.pitch(0);
+    }
 }
+

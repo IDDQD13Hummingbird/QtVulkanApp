@@ -14,11 +14,11 @@ WorldAxis::WorldAxis()
     drawType = 0; // 0 = fill, 1 = line
 
     //x-axis
-    mVertices.push_back(Vertex{ 20.f, -5.f, -5.f,     1.f, 0.75f, 0.75f,    0.f, 0.f });
+    mVertices.push_back(Vertex{ 20.f,   -5.f,   -1.f,     1.f, 0.75f, 0.75f,    0.f, 0.f });
     //y-axis
-    mVertices.push_back(Vertex{ 0.f, 20.f, -5.f,     0.75f, 1.f, 0.75f,    0.f, 0.f });
+    mVertices.push_back(Vertex{ 0.f,    20.f,   -1.f,     0.75f, 1.f, 0.75f,    0.f, 0.f });
     //z-axis
-    mVertices.push_back(Vertex{ -20.f, -20.f, -5.f,     0.75f, 0.75f, 1.f,    0.f, 0.f });
+    mVertices.push_back(Vertex{ -20.f,  -15.f,  -1.f,     0.75f, 0.75f, 1.f,    0.f, 0.f });
 
 
     mMatrix.setToIdentity();

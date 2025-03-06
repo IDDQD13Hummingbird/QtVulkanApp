@@ -10,6 +10,11 @@ struct Input
     bool A{false};
     bool S{false};
     bool D{false};
+    bool I{false};
+    bool K{false};
+    bool J{false};
+    bool L{false};
+        bool R{false};
     bool UP{false};     //Arrow keys
     bool DOWN{false};
     bool LEFT{false};
@@ -17,6 +22,8 @@ struct Input
     bool Q{false};
     bool E{false};
     bool C{false};
+    bool O{false};
+    bool U{false};
     bool LSHIFT{false};
     bool LCTRL{false};
     bool SPACE{false};

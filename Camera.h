@@ -17,6 +17,7 @@ public:
 
     void setSpeed(float speed);
     void moveRight(float delta);
+    void moveUp(float delta);
     void updateHeigth(float deltaHeigth);
     QMatrix4x4 cMatrix();
 
