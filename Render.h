@@ -1,14 +1,23 @@
-#ifndef RENDERWINDOW_H
-#define RENDERWINDOW_H
+#ifndef RENDER_H
+#define RENDER_H
 
 #include "vktriangle.h"
 #include "vktrianglesurface.h"
 #include <QVulkanWindow>
+<<<<<<< Updated upstream:RenderWindow.h
+=======
+#include <vector>
+#include <unordered_map>
+#include "Camera.h"
+#include "Triangle.h"
+#include "TriangleSurface.h"
+#include "VisualObject.h"
+>>>>>>> Stashed changes:Render.h
 
-class RenderWindow : public QVulkanWindowRenderer
+class Renderer : public QVulkanWindowRenderer
 {
 public:
-    RenderWindow(QVulkanWindow *w, bool msaa = false);
+    Renderer(QVulkanWindow *w, bool msaa = false);
 
     //Initializes the Vulkan resources needed,
     // the buffers
@@ -63,7 +72,7 @@ protected:
 private:
     void updateUniformBuffer(const QMatrix4x4& modelMatrix, int currentFrame);
     VkTriangle mTriangle;
-    VkTriangleSurface mSurface;
+    TriangleSurface mSurface;
     VisualObject mVisualObject;
     std::vector<VisualObject*> mObjects;
 
@@ -72,7 +81,19 @@ private:
                       const VkDeviceSize uniAlign,
                       VisualObject* visualObject,
                       VkBufferUsageFlags usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+<<<<<<< Updated upstream:RenderWindow.h
 };
 
 
 #endif // RENDERWINDOW_H
+=======
+    //VkBuffer& buffer,
+    //VkDeviceMemory& bufferMemory) ;
+    Camera mCamera;
+    //VkDevice logicalDevice;
+    //VkPipelineInputAssemblyStateCreateInfo ia;
+    //VkGraphicsPipelineCreateInfo pipelineInfo;
+};
+
+#endif // RENDER_H
+>>>>>>> Stashed changes:Render.h

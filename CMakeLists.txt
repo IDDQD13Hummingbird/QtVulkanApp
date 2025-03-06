@@ -6,11 +6,12 @@ find_package(Qt6 REQUIRED COMPONENTS Core Gui Widgets)
 qt_standard_project_setup()
 
 qt_add_executable(QtVulkanApp
-    RenderWindow.cpp RenderWindow.h
+    Render.cpp Render.h
     MainWindow.cpp MainWindow.h
     main.cpp
 
     VulkanWindow.h VulkanWindow.cpp
+<<<<<<< Updated upstream
     vktriangle.h vktriangle.cpp
     Vertex.h
     Vertex.cpp
@@ -19,6 +20,15 @@ qt_add_executable(QtVulkanApp
     oppg1.h oppg1.cpp
     oppg2.h oppg2.cpp
     oppg3.h oppg3.cpp
+=======
+    TriangleSurface.h TriangleSurface.cpp
+    VisualObject.h VisualObject.cpp
+    Vertex.h Vertex.cpp
+    Camera.h Camera.cpp
+    Triangle.h Triangle.cpp
+
+
+>>>>>>> Stashed changes
 )
 # Define the shader files
 set(SHADER_FILES

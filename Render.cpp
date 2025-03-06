@@ -1,5 +1,9 @@
+<<<<<<< Updated upstream:RenderWindow.cpp
 #include "RenderWindow.h"
 #include "vktriangle.h"
+=======
+#include "Render.h"
+>>>>>>> Stashed changes:Render.cpp
 #include <QVulkanFunctions>
 #include <QFile>
 
@@ -17,9 +21,9 @@ static inline VkDeviceSize aligned(VkDeviceSize v, VkDeviceSize byteAlign)
 }
 
 
-/*** RenderWindow class ***/
+/*** Renderer class ***/
 
-RenderWindow::RenderWindow(QVulkanWindow *w, bool msaa)
+Renderer::Renderer(QVulkanWindow *w, bool msaa)
 	: mWindow(w)
 {
     if (msaa) {
@@ -33,11 +37,29 @@ RenderWindow::RenderWindow(QVulkanWindow *w, bool msaa)
             }
         }
     }
+<<<<<<< Updated upstream:RenderWindow.cpp
 }
 void RenderWindow::createBuffer(VkDevice logicalDevice,
                                 const VkDeviceSize uniAlign,
                                 VisualObject* visualObject,
                                 VkBufferUsageFlags usage)
+=======
+    // Dag 230125
+    mObjects.push_back(new VkTriangle());
+    mObjects.push_back((new TriangleSurface()));
+    // Dag 030225
+    mObjects.at(0)->setName("triangel");
+    mObjects.at(1)->setName("surf");
+    // **************************************
+    // Legger inn objekter i map
+    // **************************************
+    //std::string navn{"navn"}; // Skal VisualObject klassen få en navn-variabel?
+    for (auto it=mObjects.begin(); it!=mObjects.end(); it++)
+        mMap.insert(std::pair<std::string, VisualObject*>{(*it)->getName(),*it});
+}
+
+void Renderer::initResources()
+>>>>>>> Stashed changes:Render.cpp
 {
     VkBufferCreateInfo bufferInfo{};
     memset(&bufferInfo, 0, sizeof(bufferInfo)); //Clear out the memory
@@ -413,7 +435,12 @@ void RenderWindow::initResources()
     getVulkanHWInfo();
 }
 
+<<<<<<< Updated upstream:RenderWindow.cpp
 void RenderWindow::initSwapChainResources()
+=======
+// This function is called at startup and when the app window is resized
+void Renderer::initSwapChainResources()
+>>>>>>> Stashed changes:Render.cpp
 {
     qDebug("\n ***************************** initSwapChainResources ******************************************* \n");
 
@@ -435,10 +462,16 @@ void RenderWindow::initSwapChainResources()
     mProjectionMatrix.scale(1.0f, -1.0f, 1.0);
 }
 
-void RenderWindow::startNextFrame()
+void Renderer::startNextFrame()
 {
+<<<<<<< Updated upstream:RenderWindow.cpp
     VkDevice dev = mWindow->device();
     VkCommandBuffer cb = mWindow->currentCommandBuffer();
+=======
+    //std::vector<VisualObject*> mObjects;
+    //std::unordered_map<std::string, VisualObject*> mMap;
+    VkCommandBuffer cmdBuf = mWindow->currentCommandBuffer();
+>>>>>>> Stashed changes:Render.cpp
     const QSize sz = mWindow->swapChainImageSize();
 
     //Backtgound color of the render window - dark grey -
@@ -525,7 +558,7 @@ void RenderWindow::startNextFrame()
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
 }
 
-VkShaderModule RenderWindow::createShader(const QString &name)
+VkShaderModule Renderer::createShader(const QString &name)
 {
     //This uses Qt's own file opening and resource system
     //We probably will replace it with pure C++ when expanding the program
@@ -552,7 +585,66 @@ VkShaderModule RenderWindow::createShader(const QString &name)
     return shaderModule;
 }
 
+<<<<<<< Updated upstream:RenderWindow.cpp
 void RenderWindow::getVulkanHWInfo()
+=======
+void Renderer::setModelMatrix(QMatrix4x4 modelMatrix)
+{
+
+	mDeviceFunctions->vkCmdPushConstants(mWindow->currentCommandBuffer(), mPipelineLayout, 
+        VK_SHADER_STAGE_VERTEX_BIT, 0, 16 * sizeof(float), modelMatrix.constData());
+}
+
+// Dag 240125
+// This function contains some of the body of our former Renderer::initResources() function
+// If we want to have more objects, we need to initialize buffers for each of them
+// This version is not a version with encapsulation
+// We use the VisualObject members mBuffer and mBufferMemory
+void Renderer::createBuffer(VkDevice logicalDevice, const VkDeviceSize uniAlign,
+                                VisualObject* visualObject, VkBufferUsageFlags usage)
+{
+    VkBufferCreateInfo bufferInfo{};
+    memset(&bufferInfo, 0, sizeof(bufferInfo)); //Clear out the memory
+    bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO; // Set the structure type
+
+    VkDeviceSize vertexAllocSize = aligned(visualObject->getVertices().size()*sizeof(Vertex), uniAlign);
+    bufferInfo.size = vertexAllocSize; //One vertex buffer (we don't use Uniform buffer in this example)
+    bufferInfo.usage = VK_BUFFER_USAGE_VERTEX_BUFFER_BIT; // Set the usage vertex buffer (not using Uniform buffer in this example)
+
+    VkResult err = mDeviceFunctions->vkCreateBuffer(logicalDevice, &bufferInfo, nullptr, &visualObject->mBuffer);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create buffer: %d", err);
+
+    VkMemoryRequirements memReq;
+    mDeviceFunctions->vkGetBufferMemoryRequirements(logicalDevice, visualObject->mBuffer, &memReq);
+
+    VkMemoryAllocateInfo memAllocInfo = {
+        VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,
+        nullptr,
+        memReq.size,
+        mWindow->hostVisibleMemoryIndex()
+    };
+
+    err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &memAllocInfo, nullptr, &visualObject->mBufferMemory);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to allocate memory: %d", err);
+
+    err = mDeviceFunctions->vkBindBufferMemory(logicalDevice, visualObject->mBuffer, visualObject->mBufferMemory, 0);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to bind buffer memory: %d", err);
+
+    quint8* p{nullptr};
+    err = mDeviceFunctions->vkMapMemory(logicalDevice, visualObject->mBufferMemory, 0, memReq.size, 0, reinterpret_cast<void **>(&p));
+    if (err != VK_SUCCESS)
+        qFatal("Failed to map memory: %d", err);
+
+    memcpy(p, visualObject->getVertices().data(), visualObject->getVertices().size()*sizeof(Vertex));
+
+    mDeviceFunctions->vkUnmapMemory(logicalDevice, visualObject->mBufferMemory);
+}
+
+void Renderer::getVulkanHWInfo()
+>>>>>>> Stashed changes:Render.cpp
 {
     qDebug("\n ***************************** Vulkan Hardware Info ******************************************* \n");
     QVulkanInstance *inst = mWindow->vulkanInstance();
@@ -598,12 +690,12 @@ void RenderWindow::getVulkanHWInfo()
     qDebug("\n ***************************** Vulkan Hardware Info finished ******************************************* \n");
 }
 
-void RenderWindow::releaseSwapChainResources()
+void Renderer::releaseSwapChainResources()
 {
     qDebug("\n ***************************** releaseSwapChainResources ******************************************* \n");
 }
 
-void RenderWindow::releaseResources()
+void Renderer::releaseResources()
 {
     qDebug("\n ***************************** releaseResources ******************************************* \n");
 
