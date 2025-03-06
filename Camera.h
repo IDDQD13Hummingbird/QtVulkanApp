@@ -34,6 +34,8 @@ private:
     QMatrix4x4 mViewMatrix{};
 
     QVector3D mPosition{ 0.f, 0.f, 0.f };
+
+    QVector3D mInHousePosition{ 0.f, 0.f, 0.f };
     float mPitch{ 0.f };
     float mYaw{ 0.f };
 
