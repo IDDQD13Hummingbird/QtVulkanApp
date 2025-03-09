@@ -45,6 +45,18 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
         qDebug("Scaling object");
         dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->scale(0.9f);
     }
+    if(event->key() == Qt::Key_R)
+    {
+        mInput.R = true;
+    }
+    if(event->key() == Qt::Key_U)
+    {
+        mInput.U = true;
+    }
+    if(event->key() == Qt::Key_O)
+    {
+        mInput.O = true;
+    }
     if (event->key() == Qt::Key_Escape)
     {
         QCoreApplication::quit();       //Shuts down the whole program
@@ -111,6 +123,14 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
 
 void VulkanWindow::keyReleaseEvent(QKeyEvent *event)
 {
+    if(event->key() == Qt::Key_U)
+    {
+        mInput.U = false;
+    }
+    if(event->key() == Qt::Key_O)
+    {
+        mInput.O = false;
+    }
     if(event->key() == Qt::Key_W)
     {
         mInput.W = false;
@@ -140,6 +160,10 @@ void VulkanWindow::keyReleaseEvent(QKeyEvent *event)
     }
     if(event->key() == Qt::Key_X)
     {
+    }
+    if(event->key() == Qt::Key_R)
+    {
+                mInput.R = false;
     }
     if(event->key() == Qt::Key_Up)
     {
@@ -217,16 +241,19 @@ void VulkanWindow::handleInput()
 {
     //Camera
     mCamera->setSpeed(0.f);  //cancel last frame movement
-    if (mInput.RMB)
     {
         if (mInput.W)
-            mCamera->setSpeed(mCameraSpeed);
+            mCamera->moveUp(-mCameraSpeed);
         if (mInput.S)
-            mCamera->setSpeed(-mCameraSpeed);
+            mCamera->moveUp(mCameraSpeed);
         if (mInput.D)
             mCamera->moveRight(-mCameraSpeed);
         if (mInput.A)
             mCamera->moveRight(mCameraSpeed);
+        if (mInput.U)
+            mCamera->setSpeed(mCameraSpeed);
+        if (mInput.O)
+            mCamera->setSpeed(-mCameraSpeed);
         if (mInput.Q)
             mCamera->updateHeigth(mCameraSpeed);
         if (mInput.E)
