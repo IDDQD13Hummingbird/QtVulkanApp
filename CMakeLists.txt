@@ -18,6 +18,9 @@ qt_add_executable(QtVulkanApp
     Triangle.h Triangle.cpp
     Input.h
     WorldAxis.h WorldAxis.cpp
+    Controls.h Controls.cpp
+    PlayerStat.h PlayerStat.cpp
+    Player.h Player.cpp
 )
 # Define the shader files
 set(SHADER_FILES
