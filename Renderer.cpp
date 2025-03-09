@@ -31,10 +31,10 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
 
-//    mObjects.at(0)->setName("tri");
-//    mObjects.at(0)->mColor = {0.2, 0.1, 0.8};
-//    mObjects.at(1)->setName("quad");
-//    mObjects.at(1)->mColor = {0.9, 0.1, 0.8};
+    mObjects.at(0)->setName("tri");
+    mObjects.at(0)->mColor = {0.2, 0.1, 0.8};
+    mObjects.at(1)->setName("quad");
+    mObjects.at(1)->mColor = {0.9, 0.1, 0.8};
     mObjects.at(2)->setName("axis");
     mObjects.at(2)->mColor = {0.0, 0.0, 0.0};
 
