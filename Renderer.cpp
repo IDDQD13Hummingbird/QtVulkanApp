@@ -31,10 +31,10 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
 
-    mObjects.at(0)->setName("tri");
-    mObjects.at(0)->mColor = {0.2, 0.1, 0.8};
-    mObjects.at(1)->setName("quad");
-    mObjects.at(1)->mColor = {0.9, 0.1, 0.8};
+//    mObjects.at(0)->setName("tri");
+//    mObjects.at(0)->mColor = {0.2, 0.1, 0.8};
+//    mObjects.at(1)->setName("quad");
+//    mObjects.at(1)->mColor = {0.9, 0.1, 0.8};
     mObjects.at(2)->setName("axis");
     mObjects.at(2)->mColor = {0.0, 0.0, 0.0};
 
@@ -252,13 +252,13 @@ void Renderer::initSwapChainResources()
 
     mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 100.0f);
 }
-
+// Delta time, push, update; moving NPCs will be done here
 void Renderer::startNextFrame()
 {
     //OEF: Handeling input from keyboard and mouse is done in VulkanWindow
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
-    mCamera.update();               //input can have moved the camera
+    mCamera.update(); // look at this          //input can have moved the camera
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 

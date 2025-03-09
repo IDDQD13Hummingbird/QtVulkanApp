@@ -3,7 +3,7 @@
 #include <QDebug>
 TriangleSurface::TriangleSurface() : VisualObject()
 {
-    Vertex v1{0.0f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 0.0f};
+  /*  Vertex v1{0.0f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 0.0f};
     Vertex v2{1.0f,   0.0f,  0.0f,   0.0f, 1.0f, 0.0f, 0.0f, 0.0f};
     Vertex v3{0.0f,   1.0f,  0.0f,   0.0f, 0.0f, 1.0f, 0.0f, 0.0f};
     Vertex v4{1.0f,   1.0f,  0.0f,   1.0f, 1.0f, 0.0f, 0.0f, 0.0f};
@@ -20,12 +20,12 @@ TriangleSurface::TriangleSurface() : VisualObject()
     //Temporary scale and positioning
     mMatrix.setToIdentity();
     mMatrix.scale(0.5f);
-    mMatrix.translate(0.5f, 0.1f, 0.1f);
+    mMatrix.translate(0.5f, 0.1f, 0.1f); */
 }
 
 TriangleSurface::TriangleSurface(const std::string &filename)
 {
-    std::ifstream inn(filename);
+    /* std::ifstream inn(filename);
     if (!inn.is_open())
         return;
     // read input from math part of compulsory
@@ -38,5 +38,5 @@ TriangleSurface::TriangleSurface(const std::string &filename)
         mVertices.push_back(v);
         //qDebug() << v.x << v.y << v.z;
     }
-    inn.close();
+    inn.close(); */
 }

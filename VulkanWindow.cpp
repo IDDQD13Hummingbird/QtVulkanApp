@@ -1,5 +1,6 @@
 #include "VulkanWindow.h"
 #include "Renderer.h"
+//#include "Triangle.cpp"
 #include <QKeyEvent>
 
 VulkanWindow::VulkanWindow()
@@ -230,10 +231,13 @@ void VulkanWindow::handleInput()
             mCamera->setSpeed(mCameraSpeed);
         if (mInput.O)
             mCamera->setSpeed(-mCameraSpeed);
+
         if (mInput.S)
             mCamera->moveUp(mCameraSpeed);
+
         if (mInput.W)
             mCamera->moveUp(-mCameraSpeed);
+
         if (mInput.D)
             mCamera->moveRight(-mCameraSpeed);
         if (mInput.A)
