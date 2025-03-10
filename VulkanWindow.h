@@ -3,7 +3,6 @@
 
 #include <QVulkanWindow>
 #include "VisualObject.h"
-#include "Input.h"
 
 /*The QVulkanWindow subclass reimplements the factory function QVulkanWindow::createRenderer().
 This returns a new instance of the QVulkanWindowRenderer subclass.
@@ -19,10 +18,8 @@ public:
     VulkanWindow();
 
     QVulkanWindowRenderer* createRenderer() override;
-    QVulkanWindowRenderer* getRenderWindow() const { return mRenderer; }
+    QVulkanWindowRenderer* getRenderWindow() const { return mRenderWindow; }
     void setSelectedObject(VisualObject* object) { mSelectedObject = object; }
-
-    void handleInput();
 
 signals:
     void frameQueued(int colorValue);
@@ -30,26 +27,20 @@ signals:
 protected:
     //The QVulkanWindow is a QWindow that we inherit from and have these functions
     // to capture mouse and keyboard.
-    void mousePressEvent(QMouseEvent *event) override;
-    void mouseReleaseEvent(QMouseEvent *event) override;
+    // Uncomment to use (you also have to make the definitions of
+    // these functions in the cpp-file to use them of course!)
+    //
+    //    void mousePressEvent(QMouseEvent *event) override{}
     void mouseMoveEvent(QMouseEvent *event) override;
-    void keyPressEvent(QKeyEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;              //the only one we use now
     void keyReleaseEvent(QKeyEvent *event) override;
-    void wheelEvent(QWheelEvent *event) override;
+    //    void wheelEvent(QWheelEvent *event) override{}
 
-    QVulkanWindowRenderer* mRenderer{ nullptr };
+    QVulkanWindowRenderer* mRenderWindow{ nullptr };
     VisualObject* mSelectedObject{ nullptr };
     int mIndex{0};
 
 private:
-    void setCameraSpeed(float value);
-    Input mInput;
-    float mCameraSpeed{0.005f};
-    float mCameraRotateSpeed{ -0.1f };
     int mMouseXlast{0}; //for mouse rotate input
-    int mMouseYlast{0};
-
-    class Camera* mCamera{ nullptr };
 };
-
 #endif // VULKANWINDOW_H

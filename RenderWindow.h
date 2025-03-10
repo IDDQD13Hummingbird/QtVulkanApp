@@ -1,18 +1,21 @@
-#ifndef RENDERER_H
-#define RENDERER_H
+#ifndef RENDERWINDOW_H
+#define RENDERWINDOW_H
 
 #include <QVulkanWindow>
 #include <vector>
 #include <unordered_map>
-#include "Camera.h"
-#include "Triangle.h"
-#include "TriangleSurface.h"
+#include "VkCamera.h"
+#include "VkTriangle.h"
+#include "VkTrianglesurface.h"
 #include "VisualObject.h"
+#include "VkTriangleSurface.h"
+#include "IOverlapHandler.h"
+#include "IScene.h"
 
-class Renderer : public QVulkanWindowRenderer
+class RenderWindow : public QVulkanWindowRenderer
 {
 public:
-    Renderer(QVulkanWindow *w, bool msaa = false);
+    RenderWindow(QVulkanWindow *w, bool msaa = false);
 
     //Initializes the Vulkan resources needed,
     // the buffers
@@ -44,9 +47,7 @@ protected:
     //Creates the Vulkan shader module from the precompiled shader files in .spv format
     VkShaderModule createShader(const QString &name);
 
-    void pushConstants(QMatrix4x4 modelMatrix, QVector3D color);
-
-	void setRenderPassParameters(VkCommandBuffer commandBuffer);
+	void setModelMatrix(QMatrix4x4 modelMatrix);
 
     //The ModelViewProjection MVP matrix
     QMatrix4x4 mProjectionMatrix;
@@ -55,7 +56,7 @@ protected:
 
     //Vulkan resources:
     QVulkanWindow* mWindow{ nullptr };
-    QVulkanDeviceFunctions* mDeviceFunctions{ nullptr };
+    QVulkanDeviceFunctions *mDeviceFunctions{ nullptr };
 
     VkDeviceMemory mBufferMemory{ VK_NULL_HANDLE };
     VkBuffer mBuffer{ VK_NULL_HANDLE };
@@ -66,13 +67,14 @@ protected:
 
     VkPipelineCache mPipelineCache{ VK_NULL_HANDLE };
     VkPipelineLayout mPipelineLayout{ VK_NULL_HANDLE };
-    VkPipeline mPipeline1{ VK_NULL_HANDLE };
+    VkPipeline mPipeline{ VK_NULL_HANDLE };
+    VkPipelineLayout mPipelineLayout2{ VK_NULL_HANDLE };
     VkPipeline mPipeline2{ VK_NULL_HANDLE };
 
 private:
     friend class VulkanWindow;
-    Triangle mTriangle;
-    TriangleSurface mSurface;
+    VkTriangle mTriangle;
+    VkTriangleSurface mSurface;
     VisualObject mVisualObject;
     std::vector<VisualObject*> mObjects;
     std::unordered_map<std::string, VisualObject*> mMap;    // alternativ container
@@ -80,9 +82,16 @@ private:
     void createBuffer(VkDevice logicalDevice,
                       const VkDeviceSize uniAlign, VisualObject* visualObject,
                       VkBufferUsageFlags usage=VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-
-    Camera mCamera;
-    class VulkanWindow* mVulkanWindow{ nullptr };
+    //VkBuffer& buffer,
+    //VkDeviceMemory& bufferMemory) ;
+    VkCamera mCamera;
+    //VkDevice logicalDevice;
+    //VkPipelineInputAssemblyStateCreateInfo ia;
+    //VkGraphicsPipelineCreateInfo pipelineInfo;
+    std::chrono::steady_clock::time_point lastUpdate;
+    float deltaTime;
+    //IOverlapHandler* mOverlapHandler {nullptr};
+    IScene* mScene{nullptr};
 };
 
-#endif // RENDERER_H
+#endif // RENDERWINDOW_H

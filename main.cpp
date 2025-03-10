@@ -5,6 +5,7 @@
 #include <QLoggingCategory>
 #include <QPointer>
 #include "MainWindow.h"
+#include "PlayerGetter.h"
 #include "VulkanWindow.h"
 
 Q_LOGGING_CATEGORY(lcVk, "qt.vulkan")
@@ -20,6 +21,8 @@ static void messageHandler(QtMsgType msgType, const QMessageLogContext &logConte
     if (oldMessageHandler)
         oldMessageHandler(msgType, logContext, text);
 }
+
+PlayerGetter* PlayerGetter::instance = nullptr;
 
 int main(int argc, char *argv[])
 {
@@ -51,6 +54,9 @@ int main(int argc, char *argv[])
     mainWindow.resize(1024, 1024);
     //Tells the system to show this main window
     mainWindow.show();
+
+    //instanciate singletons
+    Player* player = PlayerGetter::GetPlayer();
 
     //app.exec() runs the rest of the program
     return app.exec();

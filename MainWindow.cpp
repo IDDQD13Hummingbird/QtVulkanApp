@@ -11,8 +11,8 @@
 #include <QLineEdit>
 #include <QInputDialog>
 #include "VulkanWindow.h"
-#include "Renderer.h"
-#include "TriangleSurface.h"
+#include "RenderWindow.h"
+#include "VkTriangleSurface.h"
 
 MainWindow::MainWindow(VulkanWindow *vw, QPlainTextEdit *logWidget)
     : mVulkanWindow(vw)
@@ -99,6 +99,10 @@ QMenuBar *MainWindow::createMenu()
     connect(openFileAction, &QAction::triggered, this, &MainWindow::openFile);
     connect(exitAction, &QAction::triggered, qApp, &QCoreApplication::quit);
 
+    //   editMenu = new QMenu(this);
+    //   editNameAction = editMenu->addAction(tr("&Enter name..."));
+    //   menuBar->addMenu(editMenu);
+    //   editMenu->setVisible(true);
     return menuBar;
 }
 void MainWindow::openFile() // slot
@@ -106,8 +110,11 @@ void MainWindow::openFile() // slot
     auto filnavn = QFileDialog::getOpenFileName(this);
     if (!filnavn.isEmpty())
     {
-        TriangleSurface* surf = new TriangleSurface(filnavn.toStdString());
-        auto rw = dynamic_cast<Renderer*>(mVulkanWindow->getRenderWindow());
+        //QString tekst;
+        //loadFile(filnavn, tekst);
+        //textEdit->setPlainText(tekst);
+        VkTriangleSurface* surf = new VkTriangleSurface(filnavn.toStdString());
+        auto rw = dynamic_cast<RenderWindow*>(mVulkanWindow->getRenderWindow());
         rw->getObjects().push_back(surf);
         rw->releaseResources();
         rw->initResources();
@@ -123,7 +130,7 @@ void MainWindow::selectName()
     if (ok && !text.isEmpty())
         mSelectedName = text.toStdString();
 
-    auto rw = dynamic_cast<Renderer*>(mVulkanWindow->getRenderWindow());
+    auto rw = dynamic_cast<RenderWindow*>(mVulkanWindow->getRenderWindow());
     auto map = rw->getMap();
     auto visualObject = map[mSelectedName];
     if (visualObject != nullptr)
@@ -133,5 +140,6 @@ void MainWindow::selectName()
         msgBox.setText("Finner ikke " + QString(mSelectedName.c_str()));
         msgBox.setIcon(QMessageBox::Warning);
         msgBox.setDefaultButton(QMessageBox::Close);
+        // int ret = msgBox.exec();
     }
 }
