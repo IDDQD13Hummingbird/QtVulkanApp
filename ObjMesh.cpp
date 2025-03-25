@@ -165,5 +165,7 @@ bool ObjMesh::readObjFile(const std::string& filename)
     qDebug() << filename.c_str() << " successfully loaded";
 
     return true;
+
 }
+
 

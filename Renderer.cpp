@@ -1,9 +1,12 @@
 #include "Renderer.h"
 #include <QVulkanFunctions>
 #include <QFile>
+#include "Door.h"
+#include "MonkeyHut.h"
 #include "VulkanWindow.h"
 #include "WorldAxis.h"
 #include "ObjMesh.h"
+#include "Enemy.h"
 
 /*** Renderer class ***/
 Renderer::Renderer(QVulkanWindow *w, bool msaa)
@@ -20,17 +23,88 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
             }
         }
     }
-
-    mObjects.push_back(new Triangle());
-    mObjects.push_back((new TriangleSurface()));
-    mObjects.push_back((new WorldAxis()));
+    int tick = 0;
+    //mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new ObjMesh("suzanne.obj")));
+    mObjects.push_back((new WorldAxis()));
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new MonkeyHut()));
+    mObjects.push_back((new Door()));
 
-    mObjects.at(0)->setName("tri");
-    mObjects.at(1)->setName("quad");
-    mObjects.at(2)->setName("axis");
-	mObjects.at(3)->setName("suzanne");
 
+    float a, b;
+    //
+    //setPosition({a, b, 0});
+
+
+    //mObjects.at(1)->setName("quad");
+    mObjects.at(0)->setName("suzanne");
+    mObjects.at(0)->setPosition({0, 0, 0});
+
+VisualObject *mPlayer = mObjects.at(0);
+/* mPlayer * isColliding *  : mPlayer->isColliding( otherObject.mPosition, otherObject.mRadius);*/
+
+/*That is what I am doing in my example above, just that I have put the mPlayer inside of mObjects at position 0.
+So mObjects[0] is the player.*/
+
+    mObjects.at(1)->setName("axis");
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(2)->setName("tri");
+    mObjects.at(2)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(3)->setName("tri");
+    mObjects.at(3)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(4)->setName("tri");
+    mObjects.at(4)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(5)->setName("tri");
+    mObjects.at(5)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(6)->setName("tri");
+    mObjects.at(6)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(7)->setName("tri");
+    mObjects.at(7)->setPosition({a, b, 0});
+    a = (110-rand() % 11);
+    b = (110-rand() % 11);
+    mObjects.at(8)->setName("tri");
+    mObjects.at(8)->setPosition({a, b, 0});
+
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(9)->setName("Enemy");
+    mObjects.at(9)->setPosition({a, b, 0});
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(10)->setName("Enemy");
+    mObjects.at(10)->setPosition({a, b, 0});
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(11)->setName("Enemy");
+    mObjects.at(11)->setPosition({a, b, 0});
+
+
+    mObjects.at(12)->setName("MonkeyHut");
+    mObjects.at(12)->setPosition({100, 100, -1.15});
+
+    mObjects.at(13)->setName("Door");
+    mObjects.at(13)->setPosition({10, 20, 0});
     // **************************************
     // Objects in optional map
     // **************************************
@@ -38,11 +112,22 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         mMap.insert(std::pair<std::string, VisualObject*>{(*it)->getName(),*it});
 
 	//Inital position of the camera
-    mCamera.setPosition(QVector3D(-1, -1, -4));
+    mCamera.setPosition(QVector3D(0, 0, -4));
 
     //Need access to our VulkanWindow so making a convenience pointer
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
 }
+
+/*
+void CheckColliding()
+{
+    for(int i = 2; i<12; i++) {
+        if(VisualObject::isColliding(at(0)->mPosition, at(0)->mRadius, at(i))
+            //do code
+            )
+            }
+}
+*/
 
 void Renderer::initResources()
 {
@@ -256,6 +341,68 @@ void Renderer::startNextFrame()
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
 
+    //The object at position 0 is for instance the player
+    int score = 0;
+    for (int i{1}; i < mObjects.size(); i++ )
+    {
+        bool amICollidingWithThis;
+
+        amICollidingWithThis = mObjects.at(0)->isColliding(mObjects.at(i)->ExpungePosition(),
+                                                           mObjects.at(i)->ExpungeRadius());
+        if (amICollidingWithThis)
+        {
+            if (i != 1){
+            //qDebug("My spider senses are tingling: %i", i);
+                if (i > 1 && i < 9){
+            mObjects.at(i)->move(0, 0, -100);
+            mObjects.at(0)->score += 1;
+            qDebug("Score: %i", mObjects.at(0)->score);
+                }
+            else if(i == 13){
+                    if(mObjects.at(0)->inHut == false){
+                    mObjects.at(0)->inHut = true;
+                    mObjects.at(0)->setPosition({100, 100, 0});
+                    mObjects.at(13)->setPosition({105, 100, 0});
+                    mCamera.setPosition({-100, -100, mCamera.getPosition().z()});
+                    qDebug("Welcome to the Monkey Hut!");
+                    qDebug("x: %f", mObjects.at(0)->ExpungePosition().x());
+                    qDebug("y: %f", mObjects.at(0)->ExpungePosition().y());
+                    qDebug("z: %f", mObjects.at(0)->ExpungePosition().z());
+
+                    qDebug("cx: %f", mCamera.getPosition().x());
+                    qDebug("cy: %f", mCamera.getPosition().y());
+                    qDebug("cz: %f", mCamera.getPosition().z());
+                    }
+                    else{
+                        mObjects.at(0)->inHut = false;
+                        mObjects.at(0)->setPosition({0, 0, 0});
+                        mObjects.at(13)->setPosition({10, 20, 0});
+                        mCamera.setPosition({0, 0, mCamera.getPosition().z()});
+                        qDebug("Exiting the hut...");
+                    };
+                }
+                    else if (i > 8 || i < 12){
+                    if(i != 12 && i != 13){
+            mObjects.at(0)->move(0, 0, -120);
+            qDebug("So you chose... Death.");
+            qDebug("Final score: %i", mObjects.at(0)->score);
+                    }
+                };
+            }
+        }
+
+    };
+
+    /*
+    for (int i{1}; i < mObjects.size(); i++ )
+    {
+        bool ShallWeNow;
+
+        ShallWeNow = mObjects.at(0)->ShallWe(mObjects.at(0)->ExpungePosition(),
+                                                           mObjects.at(0)->ExpungeRadius());
+        if (amICollidingWithThis)
+        {
+*/
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
 	setRenderPassParameters(commandBuffer);
@@ -284,13 +431,35 @@ void Renderer::startNextFrame()
     }
     /***************************************/
 
+
     mDeviceFunctions->vkCmdEndRenderPass(commandBuffer);
 
-    mObjects.at(1)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
-    
+    mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(3)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(4)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(5)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(6)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(7)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(8)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(9)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(10)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(11)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+
+    mObjects.at(0)->Tack();
+    //qDebug("tick %i", mObjects.at(0)->getTick());
+
+    mObjects.at(9)->MoveEnemy(mObjects.at(0)->Direction());
+    mObjects.at(10)->MoveEnemy(mObjects.at(0)->Direction());
+    mObjects.at(11)->MoveEnemy(mObjects.at(0)->Direction());
+
+    //mObjects.at(9)->
+
+    //if mObject.at(0)
+
     mWindow->frameReady();
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
 }
+
 
 VkShaderModule Renderer::createShader(const QString &name)
 {
@@ -330,7 +499,7 @@ void Renderer::setRenderPassParameters(VkCommandBuffer commandBuffer)
     const QSize swapChainImageSize = mWindow->swapChainImageSize();
 
     //Backtgound color of the render window - dark grey
-    VkClearColorValue clearColor = { { 0.3, 0.3, 0.3, 1 } };
+    VkClearColorValue clearColor = { { 0.35, 0.25, 0.34, 1 } };
 
     VkClearDepthStencilValue clearDepthStencil = { 1, 0 };
     VkClearValue clearValues[3]{};  //C++11 {} works even on arrays!

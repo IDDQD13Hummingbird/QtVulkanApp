@@ -51,6 +51,18 @@ void Camera::setPosition(const QVector3D& position)
     update();
 }
 
+QVector3D Camera::getPosition(){
+    return mPosition;
+}
+
+/*
+void Camera::set2DPosition(const QVector2D& position)
+{
+    zi = setZ(z(mPosition));
+    mPosition = ({position, zi});
+    update();
+}
+*/
 void Camera::setSpeed(float speed)
 {
     mSpeed = speed;

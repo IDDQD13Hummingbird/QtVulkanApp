@@ -20,6 +20,11 @@ qt_add_executable(QtVulkanApp
     WorldAxis.h WorldAxis.cpp
     Utilities.h
     ObjMesh.h ObjMesh.cpp
+    Enemy.h Enemy.cpp
+    CollisionObject.h CollisionObject.cpp
+    MonkeyHut.h MonkeyHut.cpp
+    Door.h Door.cpp
+
 )
 # Define the shader files
 set(SHADER_FILES

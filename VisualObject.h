@@ -10,10 +10,15 @@ class VisualObject
 {
 public:
     VisualObject();
-
-    void move(float x, float y = 0.0f, float z = 0.0f);
+    int score = 0;
+    bool inHut = false;
+    //void move(float x, float y = 0.0f, float z = 0.0f);
+    void move(float x, float y, float z);
     void scale(float s);
     void rotate(float t, float x, float y, float z);
+    bool isColliding(QVector3D Position, float Radius/*, const VisualObject* other*/);
+    //bool Collider_vs_Collider(const VisualObject* me, const VisualObject* other);
+
 
 	//Setters and Getters
     inline std::vector<Vertex> getVertices() { return mVertices; }
@@ -32,14 +37,30 @@ public:
 	inline std::vector<Vertex> getVertices() const { return mVertices; }
 	inline std::vector<uint32_t> getIndices() const { return mIndices; }
 
+    void setPosition(const QVector3D &newPosition);
+
+public:
+
+    QVector3D ExpungePosition();
+    float ExpungeRadius();
+    void MoveEnemy(int dir);
+    float tick = 0;
+    int getTick();
+
+    void Tack();
+
+    int Direction();
+
 protected:
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;
     QMatrix4x4 mMatrix;
+    QVector3D mPosition;
     std::string mName;
-
+    float mRadius = 0.25;
 	BufferHandle mVertexBuffer;
 	BufferHandle mIndexBuffer;
+
     //VkPrimitiveTopology mTopology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST }; //not used
 
     int drawType{ 0 }; // 0 = fill, 1 = line

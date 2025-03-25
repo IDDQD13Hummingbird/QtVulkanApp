@@ -69,7 +69,7 @@ private:
     friend class VulkanWindow;
     Triangle mTriangle;
     TriangleSurface mSurface;
-    std::vector<VisualObject*> mObjects;
+    std::vector<VisualObject*> mObjects; //erase function/delete function, erase objects from the render list (make sure to set up the same for collide list.
     std::unordered_map<std::string, VisualObject*> mMap;    // alternativ container
 
     void createBuffer(VkDevice logicalDevice,

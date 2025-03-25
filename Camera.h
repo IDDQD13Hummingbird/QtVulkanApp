@@ -11,6 +11,7 @@ public:
     void init();
     void perspective(int degrees, double aspect, double nearplane, double farplane);
     void lookAt(const QVector3D& eye, const QVector3D& at, const QVector3D& up);
+    //float z = setZ((mPosition.z()));
 
     void translate(float dx, float dy, float dz);
     void rotate(float t, float x, float y, float z);
@@ -24,6 +25,8 @@ public:
 	void setPosition(const QVector3D& position);
     void pitch(float degrees);
     void yaw(float degrees);
+
+    QVector3D getPosition();
 
 private:
     QVector3D mEye{0.0, 0.0, 0.0};  // Camera position

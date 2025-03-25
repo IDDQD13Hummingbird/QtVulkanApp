@@ -34,17 +34,21 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     if (event->key() == Qt::Key_G)
     {
         //dynamic_cast<RenderWindow*>(mRenderWindow)->mObjects.at(mIndex)->move(-0.1f);
-        if(mSelectedObject)
+        //if(mSelectedObject)
         {
-            qDebug("Move object");
-            mSelectedObject->move(-0.1f);
+            //qDebug("Move object");
+            //mSelectedObject->move(-0.1f);
+
+            qDebug("Scaling object - bloat");
+            dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->scale(1.1f);
         }
     }
     if(event->key() == Qt::Key_F)
     {
-        qDebug("Scaling object");
+        qDebug("Scaling object - shrink");
         dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->scale(0.9f);
     }
+
     if (event->key() == Qt::Key_Escape)
     {
         QCoreApplication::quit();       //Shuts down the whole program
@@ -166,7 +170,7 @@ void VulkanWindow::wheelEvent(QWheelEvent *event)
     QPoint numDegrees = event->angleDelta();
 
     //if RMB, change the speed of the camera
-    if (mInput.RMB)
+    //if (mInput.RMB)
     {
         if (numDegrees.y() < 1)
             setCameraSpeed(-0.002f);
@@ -197,7 +201,7 @@ void VulkanWindow::mouseReleaseEvent(QMouseEvent *event)
 }
 
 void VulkanWindow::mouseMoveEvent(QMouseEvent *event)
-{
+{/*
     if (mInput.RMB)
     {
         //Using mMouseXYlast as deltaXY so we don't need extra variables
@@ -208,7 +212,8 @@ void VulkanWindow::mouseMoveEvent(QMouseEvent *event)
             dynamic_cast<Renderer*>(mRenderer)->mCamera.yaw(-mCameraRotateSpeed * mMouseXlast);
         if (mMouseYlast != 0)
             dynamic_cast<Renderer*>(mRenderer)->mCamera.pitch(-mCameraRotateSpeed * mMouseYlast);
-    }
+    }*/
+
     mMouseXlast = event->pos().x();
     mMouseYlast = event->pos().y();
 }
@@ -219,17 +224,34 @@ void VulkanWindow::handleInput()
     mCamera->setSpeed(0.f);  //cancel last frame movement
     if (mInput.RMB)
     {
-        if (mInput.W)
-            mCamera->setSpeed(mCameraSpeed);
-        if (mInput.S)
-            mCamera->setSpeed(-mCameraSpeed);
-        if (mInput.D)
-            mCamera->moveRight(-mCameraSpeed);
-        if (mInput.A)
-            mCamera->moveRight(mCameraSpeed);
-        if (mInput.Q)
-            mCamera->updateHeigth(mCameraSpeed);
-        if (mInput.E)
+        if (mInput.W){
+            if (mInput.RMB) {
+                dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(0.0f, mCameraSpeed, 0.0f);
+            }
             mCamera->updateHeigth(-mCameraSpeed);
+        }
+
+        if (mInput.S){
+            if (mInput.RMB) {
+                dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(0.0f, -mCameraSpeed, 0.0f);
+            }
+            mCamera->updateHeigth(mCameraSpeed);
+        }
+        if (mInput.D){
+            if (mInput.RMB) {
+                dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(mCameraSpeed, 0.0f, 0.0f);
+            }
+            mCamera->moveRight(-mCameraSpeed);
+        }
+        if (mInput.A){
+            if (mInput.RMB) {
+                dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(-mCameraSpeed, 0.0f, 0.0f);
+            }
+            mCamera->moveRight(mCameraSpeed);
+            }
+        if (mInput.Q)
+            mCamera->setSpeed(mCameraSpeed);
+        if (mInput.E)
+            mCamera->setSpeed(-mCameraSpeed);
     }
 }
