@@ -21,7 +21,6 @@ qt_add_executable(QtVulkanApp
     Utilities.h
     ObjMesh.h ObjMesh.cpp
     Enemy.h Enemy.cpp
-    CollisionObject.h CollisionObject.cpp
     MonkeyHut.h MonkeyHut.cpp
     Door.h Door.cpp
 
