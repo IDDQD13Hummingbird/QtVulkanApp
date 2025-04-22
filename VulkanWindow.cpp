@@ -225,28 +225,20 @@ void VulkanWindow::handleInput()
     if (mInput.RMB)
     {
         if (mInput.W){
-            if (mInput.RMB) {
                 dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(0.0f, mCameraSpeed, 0.0f);
-            }
             mCamera->updateHeigth(-mCameraSpeed);
         }
 
         if (mInput.S){
-            if (mInput.RMB) {
                 dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(0.0f, -mCameraSpeed, 0.0f);
-            }
             mCamera->updateHeigth(mCameraSpeed);
         }
         if (mInput.D){
-            if (mInput.RMB) {
                 dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(mCameraSpeed, 0.0f, 0.0f);
-            }
             mCamera->moveRight(-mCameraSpeed);
         }
         if (mInput.A){
-            if (mInput.RMB) {
                 dynamic_cast<Renderer*>(mRenderer)->mObjects.at(mIndex)->move(-mCameraSpeed, 0.0f, 0.0f);
-            }
             mCamera->moveRight(mCameraSpeed);
             }
         if (mInput.Q)

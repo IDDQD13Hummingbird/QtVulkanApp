@@ -28,9 +28,13 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
     int tick = 0;
+
+
     //mObjects.push_back((new TriangleSurface()));
-    mObjects.push_back((new ObjMesh("suzanne.obj")));
-    mObjects.push_back((new WorldAxis()));
+    mObjects.push_back((new ObjMesh("suzanne.obj")));   //0
+mObjects.push_back((new Door()));
+    mObjects.push_back((new WorldAxis()));              //1
+
     mObjects.push_back(new Triangle());
     mObjects.push_back(new Triangle());
     mObjects.push_back(new Triangle());
@@ -38,18 +42,21 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back(new Triangle());
     mObjects.push_back(new Triangle());
     mObjects.push_back(new Triangle());
+                                                        //2-8
     mObjects.push_back((new Enemy()));
     mObjects.push_back((new Enemy()));
     mObjects.push_back((new Enemy()));
-    mObjects.push_back((new MonkeyHut()));
-    mObjects.push_back((new Door()));
-    //mObjects.push_back(new Heightmap());
+                                                        //9-11
+    mObjects.push_back((new MonkeyHut()));              //12
+                       //13
+    //mObjects.push_back(new Heightmap());                //14
     //mObjects.push_back((new World()));
 
 
     float a, b;
     //
     //setPosition({a, b, 0});
+
 
 
     //mObjects.at(1)->setName("quad");
@@ -120,7 +127,7 @@ So mObjects[0] is the player.*/
         mMap.insert(std::pair<std::string, VisualObject*>{(*it)->getName(),*it});
 
 	//Inital position of the camera
-    mCamera.setPosition(QVector3D(0, 0, -4));
+    mCamera.setPosition(QVector3D(0, 0, -20));
 
     //Need access to our VulkanWindow so making a convenience pointer
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
@@ -451,6 +458,7 @@ void Renderer::startNextFrame()
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
 
+
     //The object at position 0 is for instance the player
     int score = 0;
     for (int i{1}; i < mObjects.size(); i++ )
@@ -491,18 +499,27 @@ void Renderer::startNextFrame()
                         qDebug("Exiting the hut...");
                     };
                 }
-                    else if (i > 8 || i < 12){
-                    if(i != 12 && i != 13 && i != 14){
+                    else if (i > 8 && i < 12){
             mObjects.at(0)->move(0, 0, -120);
             qDebug("So you chose... Death.");
             qDebug("Final score: %i", mObjects.at(0)->score);
-                    }
                 };
             }
         }
 
     };
+    setViewProjectionMatrix();   //Update the view and projection matrix in the Uniform
 
+    VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
+
+    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                              &mDescriptorSet, 0, nullptr);
+
+    setRenderPassParameters(commandBuffer);
+
+    VkDeviceSize vbOffset{ 0 };     //Offsets into buffer being bound
+
+    //The object at position
     /*
     for (int i{1}; i < mObjects.size(); i++ )
     {
@@ -513,11 +530,8 @@ void Renderer::startNextFrame()
         if (amICollidingWithThis)
         {
 */
-    VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
-	setRenderPassParameters(commandBuffer);
 
-    VkDeviceSize vbOffset{ 0 };     //Offsets into buffer being bound
 
     /********************************* Our draw call!: *********************************/
     for (std::vector<VisualObject*>::iterator it=mObjects.begin(); it!=mObjects.end(); it++)
