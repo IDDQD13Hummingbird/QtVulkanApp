@@ -85,6 +85,24 @@ float VisualObject::ExpungeRadius()
     return mRadius;
 }
 
+std::vector<Vertex> VisualObject::ExpungeVertices(){
+    return mVertices;
+}
+/*
+std::vector<Vertex> VisualObject::ExpungeVertex(int index){
+    return mVertices[index];
+};
+*/
+
+int VisualObject::ExpungeIndices(int i){
+return mIndices[i];
+}
+
+int VisualObject::sizeofIndices()
+{
+    return mIndices.size();
+}
+
 void VisualObject::MoveEnemy(int dir){
     move(0.075*dir+sin(tick), 0.075*dir+sin(tick), 0);
 };

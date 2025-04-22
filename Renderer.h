@@ -48,6 +48,7 @@ protected:
 	void setModelMatrix(QMatrix4x4 modelMatrix);
 
 	void setRenderPassParameters(VkCommandBuffer commandBuffer);
+    void UpdatePosition(VisualObject* ObjMesh,  VisualObject* Heightmap);
 
     //The ModelViewProjection MVP matrix
     QMatrix4x4 mProjectionMatrix;
@@ -91,6 +92,61 @@ private:
 	VkCommandBuffer BeginTransientCommandBuffer();
 	void EndTransientCommandBuffer(VkCommandBuffer commandBuffer);
 
+protected:
+
+    //Creates the Vulkan shader module from the precompiled shader files in .spv format
+    void setViewProjectionMatrix();
+    void setTexture(TextureHandle& textureHandle, VkCommandBuffer commandBuffer);
+
+    VkDeviceMemory mBufferMemory{ VK_NULL_HANDLE };
+    VkBuffer mBuffer{ VK_NULL_HANDLE };
+
+    //For Uniform buffers
+    VkDescriptorPool mDescriptorPool{ VK_NULL_HANDLE };
+    VkDescriptorSetLayout mDescriptorSetLayout{ VK_NULL_HANDLE };
+    VkDescriptorSet mDescriptorSet{ VK_NULL_HANDLE }; // [QVulkanWindow::MAX_CONCURRENT_FRAME_COUNT] { VK_NULL_HANDLE };
+
+    //For Textures
+    VkDescriptorPool mTextureDescriptorPool{ VK_NULL_HANDLE };
+    VkDescriptorSetLayout mTextureDescriptorSetLayout{ VK_NULL_HANDLE };
+    VkSampler mTextureSampler{ VK_NULL_HANDLE };
+
+private:
+
+    void createUniformBuffer();
+    void createDescriptorSetLayouts();
+    void createDescriptorSet();
+    void createDescriptorPools();
+    void destroyBuffer(BufferHandle handle);
+
+    void createTextureSampler();
+    TextureHandle createTexture(const char* filename);
+    TextureHandle createImage(int width, int height, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkFormat format);
+    void transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkImageLayout newLayout);
+    void copyBufferToImage(VkBuffer buffer, VkImage image, int width, int height);
+    VkImageView createImageView(VkImage image, VkFormat format);
+
+    void destroyTexture(TextureHandle& textureHandle);
+
+    //Texture variables
+
+    VkSurfaceFormatKHR mSurfaceFormat{};
+
+    TextureHandle mTextureHandle{};
+
+    VkCommandBuffer beginTransientCommandBuffer();
+    void endTransientCommandBuffer(VkCommandBuffer commandBuffer);
+
+    BufferHandle mUniformBuffer{};
+    void* mUniformBufferLocation{ nullptr };
+
+    // Color shader material / shader
+    struct {
+        VkShaderModule vertShaderModule;
+        VkShaderModule fragShaderModule;
+        //VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };    //also should have had a spesific pipeline layout
+        VkPipeline pipeline{ VK_NULL_HANDLE };
+    } mColorMaterial;
 };
 
 #endif // RENDERER_H

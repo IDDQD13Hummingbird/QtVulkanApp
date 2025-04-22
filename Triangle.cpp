@@ -1,6 +1,5 @@
 #include "Triangle.h"
-#include "Vertex.h"
-#include "VisualObject.h"
+//#include "Vertex.h"
 
 Triangle::Triangle() : VisualObject()
 {

@@ -43,6 +43,10 @@ public:
 
     QVector3D ExpungePosition();
     float ExpungeRadius();
+    std::vector<Vertex> ExpungeVertices();
+    std::vector<Vertex> ExpungeVertex(int index);
+    int ExpungeIndices(int i);
+    int sizeofIndices();
     void MoveEnemy(int dir);
     float tick = 0;
     int getTick();
