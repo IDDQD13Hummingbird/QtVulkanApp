@@ -32,7 +32,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
     //mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new ObjMesh("suzanne.obj")));   //0
-mObjects.push_back((new Door()));
+
     mObjects.push_back((new WorldAxis()));              //1
 
     mObjects.push_back(new Triangle());
@@ -48,7 +48,7 @@ mObjects.push_back((new Door()));
     mObjects.push_back((new Enemy()));
                                                         //9-11
     mObjects.push_back((new MonkeyHut()));              //12
-                       //13
+    mObjects.push_back((new Door()));                   //13
     //mObjects.push_back(new Heightmap());                //14
     //mObjects.push_back((new World()));
 
@@ -512,8 +512,7 @@ void Renderer::startNextFrame()
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
-    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
-                                              &mDescriptorSet, 0, nullptr);
+    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
 
     setRenderPassParameters(commandBuffer);
 
