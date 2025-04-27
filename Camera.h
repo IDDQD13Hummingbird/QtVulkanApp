@@ -5,7 +5,7 @@
 class Camera
 {
 public:
-    Camera();
+    Camera()=default;
     ~Camera() {}
 
     void init();
@@ -20,17 +20,19 @@ public:
     void updateHeigth(float deltaHeigth);
     //QMatrix4x4 cMatrix();
 
-	inline QMatrix4x4 viewMatrix() const { return mViewMatrix; }
-	inline QMatrix4x4 projectionMatrix() const { return mProjectionMatrix; }
+    inline QMatrix4x4 viewMatrix() const { return mViewMatrix; }
+    inline QMatrix4x4 projectionMatrix() const { return mProjectionMatrix; }
 
     void update();
-	void setPosition(const QVector3D& position);
+    void setPosition(const QVector3D& position);
     void pitch(float degrees);
     void yaw(float degrees);
 
     inline void setViewMatrix(const QMatrix4x4 &newViewMatrix){ mViewMatrix = newViewMatrix; }
     inline void setProjectionMatrix(const QMatrix4x4 &newProjectionMatrix){ mProjectionMatrix = newProjectionMatrix; }
 
+    QVector3D getPosition();
+    QMatrix4x4 cMatrix();
 private:
     QVector3D mEye{0.0, 0.0, 0.0};  // Camera position
     QVector3D mAt{0.0, 0.0, -1.0};   // Forward vector

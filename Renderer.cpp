@@ -1,13 +1,14 @@
 #include "Renderer.h"
 #include <QVulkanFunctions>
 #include <QFile>
-#include <fstream>
-#include "VulkanWindow.h"
-#include "WorldAxis.h"
+#include "Door.h"
+#include "MonkeyHut.h"
 #include "Texture.h"
 #include "Triangle.h"
-#include "TriangleSurface.h"
-#include "stb_image.h"
+#include "VulkanWindow.h"
+#include "WorldAxis.h"
+#include "ObjMesh.h"
+#include "Enemy.h"
 
 /*** Renderer class ***/
 Renderer::Renderer(QVulkanWindow *w, bool msaa)
@@ -24,28 +25,111 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
             }
         }
     }
-    // Dag 230125
-    mObjects.push_back(new Triangle());
-    mObjects.push_back((new TriangleSurface()));
+    int tick = 0;
+    //mObjects.push_back((new TriangleSurface()));
+    mObjects.push_back((new ObjMesh("suzanne.obj")));
     mObjects.push_back((new WorldAxis()));
-    // Dag 030225
-    mObjects.at(0)->setName("tri");
-    mObjects.at(1)->setName("quad");
-    mObjects.at(2)->setName("axis");
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back(new Triangle());
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new Enemy()));
+    mObjects.push_back((new MonkeyHut()));
+    mObjects.push_back((new Door()));
 
+
+    float a, b;
+    //
+    //setPosition({a, b, 0});
+
+
+    //mObjects.at(1)->setName("quad");
+    mObjects.at(0)->setName("suzanne");
+    mObjects.at(0)->setPosition({0, 0, 0});
+
+VisualObject *mPlayer = mObjects.at(0);
+/* mPlayer * isColliding *  : mPlayer->isColliding( otherObject.mPosition, otherObject.mRadius);*/
+
+/*That is what I am doing in my example above, just that I have put the mPlayer inside of mObjects at position 0.
+So mObjects[0] is the player.*/
+
+    mObjects.at(1)->setName("axis");
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(2)->setName("tri");
+    mObjects.at(2)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(3)->setName("tri");
+    mObjects.at(3)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(4)->setName("tri");
+    mObjects.at(4)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(5)->setName("tri");
+    mObjects.at(5)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(6)->setName("tri");
+    mObjects.at(6)->setPosition({a, b, 0});
+    a = (rand() % 21);
+    b = (rand() % 21);
+    mObjects.at(7)->setName("tri");
+    mObjects.at(7)->setPosition({a, b, 0});
+    a = (110-rand() % 11);
+    b = (110-rand() % 11);
+    mObjects.at(8)->setName("tri");
+    mObjects.at(8)->setPosition({a, b, 0});
+
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(9)->setName("Enemy");
+    mObjects.at(9)->setPosition({a, b, 0});
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(10)->setName("Enemy");
+    mObjects.at(10)->setPosition({a, b, 0});
+    a = (rand() % 11)+5.f;
+    b = (rand() % 11)+5.f;
+    mObjects.at(11)->setName("Enemy");
+    mObjects.at(11)->setPosition({a, b, 0});
+
+
+    mObjects.at(12)->setName("MonkeyHut");
+    mObjects.at(12)->setPosition({100, 100, -1.15});
+
+    mObjects.at(13)->setName("Door");
+    mObjects.at(13)->setPosition({10, 20, 0});
     // **************************************
-    // Legger inn objekter i map
+    // Objects in optional map
     // **************************************
-    //std::string navn{"navn"}; // Skal VisualObject klassen få en navn-variabel?
     for (auto it=mObjects.begin(); it!=mObjects.end(); it++)
         mMap.insert(std::pair<std::string, VisualObject*>{(*it)->getName(),*it});
 
 	//Inital position of the camera
-    mCamera.setPosition(QVector3D(-0.5, -0.5, -8));
+    mCamera.setPosition(QVector3D(0, 0, -4));
 
     //Need access to our VulkanWindow so making a convenience pointer
     mVulkanWindow = dynamic_cast<VulkanWindow*>(w);
 }
+
+/*
+void CheckColliding()
+{
+    for(int i = 2; i<12; i++) {
+        if(VisualObject::isColliding(at(0)->mPosition, at(0)->mRadius, at(i))
+            //do code
+            )
+            }
+}
+*/
 
 //Automatically called by Qt on Renderer startup
 void Renderer::initResources()
@@ -64,55 +148,55 @@ void Renderer::initResources()
     const VkDeviceSize uniAlign = pdevLimits->minUniformBufferOffsetAlignment;
     qDebug("Uniform buffer offset alignment is %u", (uint)uniAlign); //64 on Oles machine
 
-	// Create correct buffers for all objects in mObjects with createBuffer() function
+    // Create correct buffers for all objects in mObjects with createBuffer() function
     for (auto it=mObjects.begin(); it!=mObjects.end(); it++)
     {
-		createVertexBuffer(uniAlign, *it);                //New version - more explicit to how Vulkan does it
-		//createBuffer(logicalDevice, uniAlign, *it);         //Old version 
+        createVertexBuffer(uniAlign, *it);                //New version - more explicit to how Vulkan does it
+        //createBuffer(logicalDevice, uniAlign, *it);         //Old version
 
-		if ((*it)->getIndices().size() > 0) //If object has indices
-			createIndexBuffer(uniAlign, *it);
+        if ((*it)->getIndices().size() > 0) //If object has indices
+            createIndexBuffer(uniAlign, *it);
     }
 
     //DescriptorSets must be made before the Pipelines
     createDescriptorSetLayouts();
 
     /********************************* Vertex layout: *********************************/
-	VkVertexInputBindingDescription vertexBindingDesc{};    //Updated to a more common way to write it
-	vertexBindingDesc.binding = 0;
-	vertexBindingDesc.stride = sizeof(Vertex);
-	vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+    VkVertexInputBindingDescription vertexBindingDesc{};    //Updated to a more common way to write it
+    vertexBindingDesc.binding = 0;
+    vertexBindingDesc.stride = sizeof(Vertex);
+    vertexBindingDesc.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
 
     /********************************* Shader bindings: *********************************/
     //Descritpion of the attributes used for vertices in the shader
-	VkVertexInputAttributeDescription vertexAttrDesc[3];    //Updated to a more common way to write it
-	vertexAttrDesc[0].location = 0;     //position
+    VkVertexInputAttributeDescription vertexAttrDesc[3];    //Updated to a more common way to write it
+    vertexAttrDesc[0].location = 0;     //position
     vertexAttrDesc[0].binding = 0;
-	vertexAttrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
-	vertexAttrDesc[0].offset = 0;
+    vertexAttrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexAttrDesc[0].offset = 0;
 
-	vertexAttrDesc[1].location = 1;     //color or normal
-	vertexAttrDesc[1].binding = 0;
-	vertexAttrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
-	vertexAttrDesc[1].offset = 3 * sizeof(float);           // could use offsetof(Vertex, r); from <cstddef>
+    vertexAttrDesc[1].location = 1;     //color or normal
+    vertexAttrDesc[1].binding = 0;
+    vertexAttrDesc[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+    vertexAttrDesc[1].offset = 3 * sizeof(float);           // could use offsetof(Vertex, r); from <cstddef>
 
-	vertexAttrDesc[2].location = 2;	    //UV
-	vertexAttrDesc[2].binding = 0;
-	vertexAttrDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
-	vertexAttrDesc[2].offset = 6 * sizeof(float);           // 6 floats before the UVs are found
+    vertexAttrDesc[2].location = 2;	    //UV
+    vertexAttrDesc[2].binding = 0;
+    vertexAttrDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexAttrDesc[2].offset = 6 * sizeof(float);           // 6 floats before the UVs are found
 
-	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};	    // C++11: {} is the same as memset(&bufferInfo, 0, sizeof(bufferInfo));
+    VkPipelineVertexInputStateCreateInfo vertexInputInfo{};	    // C++11: {} is the same as memset(&bufferInfo, 0, sizeof(bufferInfo));
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
     vertexInputInfo.pNext = nullptr;
     vertexInputInfo.flags = 0;
     vertexInputInfo.vertexBindingDescriptionCount = 1;
     vertexInputInfo.pVertexBindingDescriptions = &vertexBindingDesc;
-	vertexInputInfo.vertexAttributeDescriptionCount = sizeof(vertexAttrDesc) / sizeof(vertexAttrDesc[0]);   // will be 3
+    vertexInputInfo.vertexAttributeDescriptionCount = sizeof(vertexAttrDesc) / sizeof(vertexAttrDesc[0]);   // will be 3
     vertexInputInfo.pVertexAttributeDescriptions = vertexAttrDesc;
     /*******************************************************/
 
     // Pipeline cache - supposed to increase performance
-    VkPipelineCacheCreateInfo pipelineCacheInfo{};          
+    VkPipelineCacheCreateInfo pipelineCacheInfo{};
     pipelineCacheInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
     VkResult result = mDeviceFunctions->vkCreatePipelineCache(logicalDevice, &pipelineCacheInfo, nullptr, &mPipelineCache);
     if (result != VK_SUCCESS)
@@ -125,12 +209,12 @@ void Renderer::initResources()
     pushConstantRange.offset = 0;
     pushConstantRange.size = 16 * sizeof(float);            // 16 floats for the model matrix
 
-	std::array<VkDescriptorSetLayout, 2> descriptorSetLayouts = { mDescriptorSetLayout, mTextureDescriptorSetLayout };
+    std::array<VkDescriptorSetLayout, 2> descriptorSetLayouts = { mDescriptorSetLayout, mTextureDescriptorSetLayout };
 
     VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
     pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-    pipelineLayoutInfo.pushConstantRangeCount = 1;                  
-    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;    
+    pipelineLayoutInfo.pushConstantRangeCount = 1;
+    pipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
     pipelineLayoutInfo.setLayoutCount = descriptorSetLayouts.size();
     pipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
     result = mDeviceFunctions->vkCreatePipelineLayout(logicalDevice, &pipelineLayoutInfo, nullptr, &mPipelineLayout);
@@ -142,18 +226,18 @@ void Renderer::initResources()
     VkShaderModule vertShaderModule = createShader(QStringLiteral(":/texture_vert.spv"));
     VkShaderModule fragShaderModule = createShader(QStringLiteral(":/texture_frag.spv"));
 
-	//Updated to more common way to write it:
+    //Updated to more common way to write it:
     VkPipelineShaderStageCreateInfo vertShaderCreateInfoT{};
-	vertShaderCreateInfoT.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	vertShaderCreateInfoT.stage = VK_SHADER_STAGE_VERTEX_BIT;
-	vertShaderCreateInfoT.module = vertShaderModule;
-	vertShaderCreateInfoT.pName = "main";                // start function in shader
+    vertShaderCreateInfoT.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    vertShaderCreateInfoT.stage = VK_SHADER_STAGE_VERTEX_BIT;
+    vertShaderCreateInfoT.module = vertShaderModule;
+    vertShaderCreateInfoT.pName = "main";                // start function in shader
 
     VkPipelineShaderStageCreateInfo fragShaderCreateInfoT{};
-	fragShaderCreateInfoT.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-	fragShaderCreateInfoT.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
-	fragShaderCreateInfoT.module = fragShaderModule;
-	fragShaderCreateInfoT.pName = "main";                // start function in shader
+    fragShaderCreateInfoT.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+    fragShaderCreateInfoT.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
+    fragShaderCreateInfoT.module = fragShaderModule;
+    fragShaderCreateInfoT.pName = "main";                // start function in shader
 
     VkPipelineShaderStageCreateInfo shaderStagesT[] = { vertShaderCreateInfoT, fragShaderCreateInfoT };
 
@@ -176,7 +260,7 @@ void Renderer::initResources()
 
     VkPipelineShaderStageCreateInfo shaderStagesC[] = { vertShaderCreateInfoC, fragShaderCreateInfoC };
 
-	/*********************** Graphics pipeline ********************************/
+    /*********************** Graphics pipeline ********************************/
     VkGraphicsPipelineCreateInfo pipelineInfo{};    //Will use this variable a lot in the next 100s of lines
     pipelineInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
     pipelineInfo.stageCount = 2; //vertex and fragment shader
@@ -191,19 +275,19 @@ void Renderer::initResources()
     viewport.scissorCount = 1;
     pipelineInfo.pViewportState = &viewport;
 
-	// **** Input Assembly **** - describes how primitives are assembled in the Graphics pipeline
+    // **** Input Assembly **** - describes how primitives are assembled in the Graphics pipeline
     VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
     inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
-	inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;       //Draw triangles
-	inputAssembly.primitiveRestartEnable = VK_FALSE;                    //Allow strips to be connected, not used in TriangleList
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;       //Draw triangles
+    inputAssembly.primitiveRestartEnable = VK_FALSE;                    //Allow strips to be connected, not used in TriangleList
     pipelineInfo.pInputAssemblyState = &inputAssembly;
 
-	// **** Rasterizer **** - takes the geometry and turns it into fragments
+    // **** Rasterizer **** - takes the geometry and turns it into fragments
     VkPipelineRasterizationStateCreateInfo rasterization{};
     rasterization.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe;
     rasterization.cullMode = VK_CULL_MODE_NONE;                 // VK_CULL_MODE_BACK_BIT will cull backsides
-	rasterization.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Front face is counter clockwise - could be clockwise with VK_FRONT_FACE_CLOCKWISE
+    rasterization.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Front face is counter clockwise - could be clockwise with VK_FRONT_FACE_CLOCKWISE
     rasterization.lineWidth = 1.0f;                             // Not important for VK_POLYGON_MODE_FILL
     pipelineInfo.pRasterizationState = &rasterization;
 
@@ -213,12 +297,12 @@ void Renderer::initResources()
     multisample.rasterizationSamples = mWindow->sampleCountFlagBits();
     pipelineInfo.pMultisampleState = &multisample;
 
-	// **** Color Blending **** - 
+    // **** Color Blending **** -
     // how to blend the color of a fragment that is already in the framebuffer with the color of the fragment being added
- 
+
     VkPipelineColorBlendAttachmentState colorBlendAttachment{}; // Need this struct for ColorBlending CreateInfo
     colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT
-        | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;  // Colors to apply blending to - was hardcoded to 0xF;
+                                          | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;  // Colors to apply blending to - was hardcoded to 0xF;
 
     VkPipelineColorBlendStateCreateInfo colorBlend{};
     colorBlend.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
@@ -234,7 +318,7 @@ void Renderer::initResources()
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     pipelineInfo.pDepthStencilState = &depthStencil;
 
-	// **** Dynamic State **** - dynamic states can be changed without recreating the pipeline
+    // **** Dynamic State **** - dynamic states can be changed without recreating the pipeline
     VkDynamicState dynamicEnable[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     VkPipelineDynamicStateCreateInfo dynamic{};
     dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -249,8 +333,8 @@ void Renderer::initResources()
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
-	//Making a pipeline for drawing lines
-	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
+    //Making a pipeline for drawing lines
+    mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
@@ -261,7 +345,7 @@ void Renderer::initResources()
         qFatal("Failed to create graphics pipeline: %d", result);
 
 
-	// Destroying the shader modules, we won't need them anymore after the pipeline is created
+    // Destroying the shader modules, we won't need them anymore after the pipeline is created
     if (vertShaderModule)
         mDeviceFunctions->vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
     if (fragShaderModule)
@@ -271,8 +355,8 @@ void Renderer::initResources()
     if (mColorMaterial.fragShaderModule)
         mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mColorMaterial.fragShaderModule, nullptr);
 
-	// Create the uniform buffer
-	createUniformBuffer();
+    // Create the uniform buffer
+    createUniformBuffer();
     createDescriptorPools();
     createDescriptorSet();
 
@@ -291,15 +375,11 @@ void Renderer::initSwapChainResources()
 
     // Projection matrix - how the scene will be projected into the render window
 	// has to be updated when the window is resized
-    // mProjectionMatrix.setToIdentity();
-
-    //can be used to correct for coordinate system differences between OpenGL and Vulkan:
-    //QMatrix4x4 QVulkanWindow::clipCorrectionMatrix()
-
+    mProjectionMatrix.setToIdentity();
     //find the size of the window
     const QSize sz = mWindow->swapChainImageSize();
 
-    mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 500.0f);
+    mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 100.0f);
 }
 
 void Renderer::startNextFrame()
@@ -309,52 +389,138 @@ void Renderer::startNextFrame()
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
 
+    //The object at position 0 is for instance the player
+    int score = 0;
+    for (int i{1}; i < mObjects.size(); i++ )
+    {
+        bool amICollidingWithThis;
+
+        amICollidingWithThis = mObjects.at(0)->isColliding(mObjects.at(i)->ExpungePosition(),
+                                                           mObjects.at(i)->ExpungeRadius());
+        if (amICollidingWithThis)
+        {
+            if (i != 1){
+            //qDebug("My spider senses are tingling: %i", i);
+                if (i > 1 && i < 9){
+            mObjects.at(i)->move(0, 0, -100);
+            mObjects.at(0)->score += 1;
+            qDebug("Score: %i", mObjects.at(0)->score);
+                }
+            else if(i == 13){
+                    if(mObjects.at(0)->inHut == false){
+                    mObjects.at(0)->inHut = true;
+                    mObjects.at(0)->setPosition({100, 100, 0});
+                    mObjects.at(13)->setPosition({105, 100, 0});
+                    mCamera.setPosition({-100, -100, mCamera.getPosition().z()});
+                    qDebug("Welcome to the Monkey Hut!");
+                    qDebug("x: %f", mObjects.at(0)->ExpungePosition().x());
+                    qDebug("y: %f", mObjects.at(0)->ExpungePosition().y());
+                    qDebug("z: %f", mObjects.at(0)->ExpungePosition().z());
+
+                    qDebug("cx: %f", mCamera.getPosition().x());
+                    qDebug("cy: %f", mCamera.getPosition().y());
+                    qDebug("cz: %f", mCamera.getPosition().z());
+                    }
+                    else{
+                        mObjects.at(0)->inHut = false;
+                        mObjects.at(0)->setPosition({0, 0, 0});
+                        mObjects.at(13)->setPosition({10, 20, 0});
+                        mCamera.setPosition({0, 0, mCamera.getPosition().z()});
+                        qDebug("Exiting the hut...");
+                    };
+                }
+                    else if (i > 8 || i < 12){
+                    if(i != 12 && i != 13){
+            mObjects.at(0)->move(0, 0, -120);
+            qDebug("So you chose... Death.");
+            qDebug("Final score: %i", mObjects.at(0)->score);
+                    }
+                };
+            }
+        }
+
+    };
+    //setViewProjectionMatrix();   //Update the view and projection matrix in the Uniform
+
+    //mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, &mDescriptorSet, 0, nullptr);
+
+    /*
+    for (int i{1}; i < mObjects.size(); i++ )
+    {
+        bool ShallWeNow;
+
+        ShallWeNow = mObjects.at(0)->ShallWe(mObjects.at(0)->ExpungePosition(),
+                                                           mObjects.at(0)->ExpungeRadius());
+        if (amICollidingWithThis)
+        {
+*/
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
 	setRenderPassParameters(commandBuffer);
 
     VkDeviceSize vbOffset{ 0 };     //Offsets into buffer being bound
 
-    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1, 
-        &mDescriptorSet, 0, nullptr);
 
+    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipelineLayout, 0, 1,
+                                              &mDescriptorSet, 0, nullptr);
     setViewProjectionMatrix();   //Update the view and projection matrix in the Uniform
 
     /********************************* Our draw call!: *********************************/
     for (std::vector<VisualObject*>::iterator it=mObjects.begin(); it!=mObjects.end(); it++)
     {
         //Draw type
-		if ((*it)->getDrawType() == 0)
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
-		else
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
+        if ((*it)->getDrawType() == 0)
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
+        else
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
 
         QMatrix4x4 mvp = mCamera.projectionMatrix() * mCamera.viewMatrix() * (*it)->getMatrix();
         setModelMatrix((*it)->getMatrix()); //mvp);
-        
+
         // Bind the texture descriptor set
-		setTexture(mTextureHandle, commandBuffer);
-        
+        setTexture(mTextureHandle, commandBuffer);
+
         mDeviceFunctions->vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(*it)->getVBuffer(), &vbOffset);
-		//Check if we have an index buffer - if so, use Indexed draw
+        //Check if we have an index buffer - if so, use Indexed draw
         if ((*it)->getIndices().size() > 0)
         {
-			mDeviceFunctions->vkCmdBindIndexBuffer(commandBuffer, (*it)->getIBuffer(), 0, VK_INDEX_TYPE_UINT32);
-			mDeviceFunctions->vkCmdDrawIndexed(commandBuffer, (*it)->getIndices().size(), 1, 0, 0, 0); //size == number of indices
-		}
-		else   //No index buffer - use regular draw
-			mDeviceFunctions->vkCmdDraw(commandBuffer, (*it)->getVertices().size(), 1, 0, 0);   
+            mDeviceFunctions->vkCmdBindIndexBuffer(commandBuffer, (*it)->getIBuffer(), 0, VK_INDEX_TYPE_UINT32);
+            mDeviceFunctions->vkCmdDrawIndexed(commandBuffer, (*it)->getIndices().size(), 1, 0, 0, 0); //size == number of indices
+        }
+        else   //No index buffer - use regular draw
+            mDeviceFunctions->vkCmdDraw(commandBuffer, (*it)->getVertices().size(), 1, 0, 0);
     }
     /***************************************/
 
+
     mDeviceFunctions->vkCmdEndRenderPass(commandBuffer);
 
-    //Hardcoded!!!
-    mObjects.at(1)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
-    
+    mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(3)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(4)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(5)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(6)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(7)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(8)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(9)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(10)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(11)->rotate(3.0f, 0.0f, 0.0f, 1.0f);
+
+    mObjects.at(0)->Tack();
+    //qDebug("tick %i", mObjects.at(0)->getTick());
+
+    mObjects.at(9)->MoveEnemy(mObjects.at(0)->Direction());
+    mObjects.at(10)->MoveEnemy(mObjects.at(0)->Direction());
+    mObjects.at(11)->MoveEnemy(mObjects.at(0)->Direction());
+
+    //mObjects.at(9)->
+
+    //if mObject.at(0)
+
     mWindow->frameReady();
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
 }
+
 
 VkShaderModule Renderer::createShader(const QString &name)
 {
@@ -384,8 +550,8 @@ VkShaderModule Renderer::createShader(const QString &name)
 
 void Renderer::setModelMatrix(QMatrix4x4 modelMatrix)
 {
-	mDeviceFunctions->vkCmdPushConstants(mWindow->currentCommandBuffer(), mPipelineLayout, 
-		VK_SHADER_STAGE_VERTEX_BIT, 0, 16 * sizeof(float), modelMatrix.constData());    //Column-major matrix
+    mDeviceFunctions->vkCmdPushConstants(mWindow->currentCommandBuffer(), mPipelineLayout,
+                                         VK_SHADER_STAGE_VERTEX_BIT, 0, 16 * sizeof(float), modelMatrix.constData());    //Column-major matrix
 }
 
 void Renderer::setViewProjectionMatrix()
@@ -393,7 +559,7 @@ void Renderer::setViewProjectionMatrix()
     memcpy(mUniformBufferLocation, mCamera.viewMatrix().constData(), 64);
     QMatrix4x4 temp = mCamera.projectionMatrix();
     temp = temp * mWindow->clipCorrectionMatrix();  //Correcting for Vulkans -Y
-	//Adding 64 bytes to the uniform buffer location to get to the projection matrix position
+    //Adding 64 bytes to the uniform buffer location to get to the projection matrix position
     memcpy(static_cast<char*>(mUniformBufferLocation) + 64, temp.constData(), 64);
 
     /************ NB ************
@@ -416,8 +582,8 @@ void Renderer::setViewProjectionMatrix()
 
 void Renderer::setTexture(TextureHandle& textureHandle, VkCommandBuffer commandBuffer)
 {
-	mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, 
-        mPipelineLayout, 1, 1, &textureHandle.mTextureDescriptorSet, 0, nullptr);	
+    mDeviceFunctions->vkCmdBindDescriptorSets(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                                              mPipelineLayout, 1, 1, &textureHandle.mTextureDescriptorSet, 0, nullptr);
 }
 
 void Renderer::setRenderPassParameters(VkCommandBuffer commandBuffer)
@@ -465,7 +631,7 @@ void Renderer::setRenderPassParameters(VkCommandBuffer commandBuffer)
 // This version is not a version with encapsulation
 // We use the VisualObject members mBuffer and mBufferMemory
 void Renderer::createBuffer(VkDevice logicalDevice, const VkDeviceSize uniformAlignment,
-                                VisualObject* visualObject, VkBufferUsageFlags usage)
+                            VisualObject* visualObject, VkBufferUsageFlags usage)
 {
     //Gets the size of the mesh - aligned to the uniform alignment
     VkDeviceSize vertexAllocSize = aligned(visualObject->getVertices().size() * sizeof(Vertex), uniformAlignment);
@@ -484,9 +650,9 @@ void Renderer::createBuffer(VkDevice logicalDevice, const VkDeviceSize uniformAl
 
     VkMemoryAllocateInfo memAllocInfo{};
     memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-	memAllocInfo.pNext = nullptr;
-	memAllocInfo.allocationSize = memReq.size;
-	memAllocInfo.memoryTypeIndex = mWindow->hostVisibleMemoryIndex();
+    memAllocInfo.pNext = nullptr;
+    memAllocInfo.allocationSize = memReq.size;
+    memAllocInfo.memoryTypeIndex = mWindow->hostVisibleMemoryIndex();
 
     err = mDeviceFunctions->vkAllocateMemory(logicalDevice, &memAllocInfo, nullptr, &visualObject->getVBufferMemory());
     if (err != VK_SUCCESS)
@@ -514,8 +680,8 @@ void Renderer::createVertexBuffer(const VkDeviceSize uniformAlignment, VisualObj
     //Get the size of the mesh and align it to the uniform alignment
     VkDeviceSize vertexAllocSize = aligned(visualObject->getVertices().size() * sizeof(Vertex), uniformAlignment);
 
-	BufferHandle stagingHandle = createGeneralBuffer(vertexAllocSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, //Transfer source bit is for copying data to the GPU
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    // Host visible memory (CPU) is slower to access than device local memory (GPU)
+    BufferHandle stagingHandle = createGeneralBuffer(vertexAllocSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_SRC_BIT, //Transfer source bit is for copying data to the GPU
+                                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    // Host visible memory (CPU) is slower to access than device local memory (GPU)
 
     //Copy the data over to the buffer
     void* data{ nullptr };
@@ -523,61 +689,61 @@ void Renderer::createVertexBuffer(const VkDeviceSize uniformAlignment, VisualObj
     memcpy(data, visualObject->getVertices().data(), vertexAllocSize);
     mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingHandle.mBufferMemory);
 
-	//This is for copying the data to the GPU
+    //This is for copying the data to the GPU
     BufferHandle gpuHandle = createGeneralBuffer(vertexAllocSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-        VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // Device local memory (GPU VRam) is faster to access than host visible memory (CPU RAM)
-	
+                                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // Device local memory (GPU VRam) is faster to access than host visible memory (CPU RAM)
+
     //Set the buffer and buffer memory in the VisualObject for use in the draw call
-	visualObject->setVBuffer(gpuHandle.mBuffer);
-	visualObject->setVBufferMemory(gpuHandle.mBufferMemory);
+    visualObject->setVBuffer(gpuHandle.mBuffer);
+    visualObject->setVBufferMemory(gpuHandle.mBufferMemory);
 
     //Copy the data from the staging buffer to the GPU buffer
-	VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
-	VkBufferCopy copyRegion{};
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	copyRegion.size = vertexAllocSize;
-	mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingHandle.mBuffer, gpuHandle.mBuffer, 1, &copyRegion);
-	endTransientCommandBuffer(commandBuffer);
-	
+    VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = vertexAllocSize;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingHandle.mBuffer, gpuHandle.mBuffer, 1, &copyRegion);
+    endTransientCommandBuffer(commandBuffer);
+
     //Free the staging buffer
-	destroyBuffer(stagingHandle);
+    destroyBuffer(stagingHandle);
 }
 
 void Renderer::createIndexBuffer(const VkDeviceSize uniformAlignment, VisualObject* visualObject)
 {
-	//Get the size of the mesh and align it to the uniform alignment
-	VkDeviceSize indexAllocSize = aligned(visualObject->getIndices().size() * sizeof(uint32_t), uniformAlignment);
+    //Get the size of the mesh and align it to the uniform alignment
+    VkDeviceSize indexAllocSize = aligned(visualObject->getIndices().size() * sizeof(uint32_t), uniformAlignment);
 
-	//Create a staging buffer for the index data
-	BufferHandle stagingHandle = createGeneralBuffer(indexAllocSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, 
-		VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    // Host visible memory (CPU) is slower to access than device local memory (GPU)
-	
+    //Create a staging buffer for the index data
+    BufferHandle stagingHandle = createGeneralBuffer(indexAllocSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
+                                                     VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);    // Host visible memory (CPU) is slower to access than device local memory (GPU)
+
     void* data{ nullptr };
-	mDeviceFunctions->vkMapMemory(mWindow->device(), stagingHandle.mBufferMemory, 0, indexAllocSize, 0, &data);
-	memcpy(data, visualObject->getIndices().data(), indexAllocSize);
-	mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingHandle.mBufferMemory);
+    mDeviceFunctions->vkMapMemory(mWindow->device(), stagingHandle.mBufferMemory, 0, indexAllocSize, 0, &data);
+    memcpy(data, visualObject->getIndices().data(), indexAllocSize);
+    mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingHandle.mBufferMemory);
 
     //This is for copying the data to the GPU
-	BufferHandle gpuHandle = createGeneralBuffer(indexAllocSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // Device local memory (GPU VRam) is faster to access than host visible memory (CPU RAM)
+    BufferHandle gpuHandle = createGeneralBuffer(indexAllocSize, VK_BUFFER_USAGE_INDEX_BUFFER_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT,
+                                                 VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT); // Device local memory (GPU VRam) is faster to access than host visible memory (CPU RAM)
 
-	//Set the buffer and buffer memory in the VisualObject for use in the draw call
-	visualObject->setIBuffer(gpuHandle.mBuffer);
-	visualObject->setIBufferMemory(gpuHandle.mBufferMemory);
+    //Set the buffer and buffer memory in the VisualObject for use in the draw call
+    visualObject->setIBuffer(gpuHandle.mBuffer);
+    visualObject->setIBufferMemory(gpuHandle.mBufferMemory);
 
-	//Copy the data from the staging buffer to the GPU buffer:
-	VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
+    //Copy the data from the staging buffer to the GPU buffer:
+    VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
 
-	VkBufferCopy copyRegion{};
-	copyRegion.srcOffset = 0;
-	copyRegion.dstOffset = 0;
-	copyRegion.size = indexAllocSize;
-	mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingHandle.mBuffer, gpuHandle.mBuffer, 1, &copyRegion);
-	endTransientCommandBuffer(commandBuffer);
+    VkBufferCopy copyRegion{};
+    copyRegion.srcOffset = 0;
+    copyRegion.dstOffset = 0;
+    copyRegion.size = indexAllocSize;
+    mDeviceFunctions->vkCmdCopyBuffer(commandBuffer, stagingHandle.mBuffer, gpuHandle.mBuffer, 1, &copyRegion);
+    endTransientCommandBuffer(commandBuffer);
 
-	//Free the staging buffer
-	destroyBuffer(stagingHandle);
+    //Free the staging buffer
+    destroyBuffer(stagingHandle);
 }
 
 BufferHandle Renderer::createGeneralBuffer(const VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
@@ -621,7 +787,7 @@ BufferHandle Renderer::createGeneralBuffer(const VkDeviceSize size, VkBufferUsag
 //Create a descriptor set layout that describes the uniform buffer.
 void Renderer::createDescriptorSetLayouts()
 {
-	//Uniforms - View and projection matrix
+    //Uniforms - View and projection matrix
     VkDescriptorSetLayoutBinding uniformLayoutBinding{};
     uniformLayoutBinding.binding = 0;
     uniformLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
@@ -659,8 +825,8 @@ void Renderer::createUniformBuffer()
 {
     VkDeviceSize bufferSize = 64 + 64;      // two 4x4 matrices
 
-    mUniformBuffer = createGeneralBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, 
-        VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+    mUniformBuffer = createGeneralBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+                                         VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
     //Map the buffer memory
     VkResult err = mDeviceFunctions->vkMapMemory(mWindow->device(), mUniformBuffer.mBufferMemory, 0, bufferSize, 0, &mUniformBufferLocation);
@@ -701,7 +867,7 @@ void Renderer::createDescriptorSet()
 //Create a descriptor pools to allocate descriptor sets.
 void Renderer::createDescriptorPools()
 {
-	//For Uniforms
+    //For Uniforms
     VkDescriptorPoolSize uniformPoolSize{};
     uniformPoolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;  //VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC
     uniformPoolSize.descriptorCount = 1;
@@ -717,7 +883,7 @@ void Renderer::createDescriptorPools()
         qFatal("Failed to create descriptor pool: %d", err);
 
 
-	//For Textures
+    //For Textures
     VkDescriptorPoolSize texturePoolSize{};
     texturePoolSize.type = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
     texturePoolSize.descriptorCount = 1024;      // can ask the GPU - properties.limits.maxSamplerAllocationCount;
@@ -834,7 +1000,7 @@ void Renderer::releaseResources()
         mPipelineCache = VK_NULL_HANDLE;
     }
 
-	destroyBuffer(mUniformBuffer);
+    destroyBuffer(mUniformBuffer);
 
     if (mDescriptorSetLayout) {
         mDeviceFunctions->vkDestroyDescriptorSetLayout(dev, mDescriptorSetLayout, nullptr);
@@ -849,8 +1015,8 @@ void Renderer::releaseResources()
     // Free buffers and memory for all objects in container
     for (auto it=mObjects.begin(); it!=mObjects.end(); it++) {
         if ((*it)->getVBuffer()) {
-			BufferHandle handle { (*it)->getVBufferMemory(), (*it)->getVBuffer() };
-			destroyBuffer(handle);
+            BufferHandle handle { (*it)->getVBufferMemory(), (*it)->getVBuffer() };
+            destroyBuffer(handle);
             (*it)->getVBuffer() = VK_NULL_HANDLE;
         }
         if ((*it)->getIBuffer()) {
@@ -863,21 +1029,21 @@ void Renderer::releaseResources()
     // Destroy textures
     destroyTexture(mTextureHandle);
 
-	if (mTextureSampler) {
-		mDeviceFunctions->vkDestroySampler(dev, mTextureSampler, nullptr);
-		mTextureSampler = VK_NULL_HANDLE;
-	}
+    if (mTextureSampler) {
+        mDeviceFunctions->vkDestroySampler(dev, mTextureSampler, nullptr);
+        mTextureSampler = VK_NULL_HANDLE;
+    }
 
-	if (mTextureDescriptorSetLayout) {
-		mDeviceFunctions->vkDestroyDescriptorSetLayout(dev, mTextureDescriptorSetLayout, nullptr);
-		mTextureDescriptorSetLayout = VK_NULL_HANDLE;
-	}
-	if (mTextureDescriptorPool) {
-		mDeviceFunctions->vkDestroyDescriptorPool(dev, mTextureDescriptorPool, nullptr);
-		mTextureDescriptorPool = VK_NULL_HANDLE;
-	}
+    if (mTextureDescriptorSetLayout) {
+        mDeviceFunctions->vkDestroyDescriptorSetLayout(dev, mTextureDescriptorSetLayout, nullptr);
+        mTextureDescriptorSetLayout = VK_NULL_HANDLE;
+    }
+    if (mTextureDescriptorPool) {
+        mDeviceFunctions->vkDestroyDescriptorPool(dev, mTextureDescriptorPool, nullptr);
+        mTextureDescriptorPool = VK_NULL_HANDLE;
+    }
 
-	qDebug("\n ***************************** releaseResources finished ******************************************* \n");
+    qDebug("\n ***************************** releaseResources finished ******************************************* \n");
 }
 
 //Helper function to find the memory type - Qt has this built in, but it is hidden
@@ -914,22 +1080,22 @@ uint32_t Renderer::findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags req
 // Function to create a command buffer that is short lived and not a part of the Rendering command
 VkCommandBuffer Renderer::beginTransientCommandBuffer()
 {
-	VkCommandBufferAllocateInfo allocateInfo{};
-	allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-	allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-	allocateInfo.commandPool = mWindow->graphicsCommandPool();
-	allocateInfo.commandBufferCount = 1;
-	
-	VkCommandBuffer commandBuffer;
+    VkCommandBufferAllocateInfo allocateInfo{};
+    allocateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+    allocateInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+    allocateInfo.commandPool = mWindow->graphicsCommandPool();
+    allocateInfo.commandBufferCount = 1;
+
+    VkCommandBuffer commandBuffer;
     mDeviceFunctions->vkAllocateCommandBuffers(mWindow->device(), &allocateInfo, &commandBuffer);
 
-	VkCommandBufferBeginInfo beginInfo{};
-	beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-	beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+    VkCommandBufferBeginInfo beginInfo{};
+    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-	mDeviceFunctions->vkBeginCommandBuffer(commandBuffer, &beginInfo);
+    mDeviceFunctions->vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-	return commandBuffer;
+    return commandBuffer;
 }
 
 // Function to end a short lived command buffer
@@ -937,15 +1103,15 @@ void Renderer::endTransientCommandBuffer(VkCommandBuffer commandBuffer)
 {
     mDeviceFunctions->vkEndCommandBuffer(commandBuffer);
 
-	VkSubmitInfo submitInfo{};
-	submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-	submitInfo.commandBufferCount = 1;
-	submitInfo.pCommandBuffers = &commandBuffer;
+    VkSubmitInfo submitInfo{};
+    submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+    submitInfo.commandBufferCount = 1;
+    submitInfo.pCommandBuffers = &commandBuffer;
 
-	//This is the way to submit a command buffer in Vulkan
+    //This is the way to submit a command buffer in Vulkan
     mDeviceFunctions->vkQueueSubmit(mGraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
     //mDeviceFunctions->vkQueueWaitIdle(mGraphicsQueue);
-	mDeviceFunctions->vkFreeCommandBuffers(mWindow->device(), mWindow->graphicsCommandPool(), 1, &commandBuffer);
+    mDeviceFunctions->vkFreeCommandBuffers(mWindow->device(), mWindow->graphicsCommandPool(), 1, &commandBuffer);
 }
 
 // Function to destroy a buffer and its memory
@@ -957,27 +1123,27 @@ void Renderer::destroyBuffer(BufferHandle handle) {
 
 void Renderer::createTextureSampler()
 {
-	VkSamplerCreateInfo samplerInfo{};
-	samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-	samplerInfo.magFilter = VK_FILTER_NEAREST;                   // Magnification filter - try VK_FILTER_LINEAR
-	samplerInfo.minFilter = VK_FILTER_NEAREST;                   // Minification filter - try VK_FILTER_LINEAR
-	samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for U coordinates
-	samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for V coordinates
-	samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for W coordinates
-	samplerInfo.anisotropyEnable = VK_FALSE;                     // Enable anisotropy
-	samplerInfo.maxAnisotropy = 1.0;                             // Anisotropy level
-	samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK; // Border color
-	samplerInfo.unnormalizedCoordinates = VK_FALSE;             // Normalized coordinates
-	samplerInfo.compareEnable = VK_FALSE;                       // Compare enable
-	samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;               // Compare operation
-	samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;     // Mipmap mode
-	samplerInfo.mipLodBias = 0.0f;                              // Mipmap level of detail bias
-	samplerInfo.minLod = 0.0f;                                  // Minimum level of detail
-	samplerInfo.maxLod = 0.0f;                                  // Maximum level of detail
+    VkSamplerCreateInfo samplerInfo{};
+    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    samplerInfo.magFilter = VK_FILTER_NEAREST;                   // Magnification filter - try VK_FILTER_LINEAR
+    samplerInfo.minFilter = VK_FILTER_NEAREST;                   // Minification filter - try VK_FILTER_LINEAR
+    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for U coordinates
+    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for V coordinates
+    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;  // Address mode for W coordinates
+    samplerInfo.anisotropyEnable = VK_FALSE;                     // Enable anisotropy
+    samplerInfo.maxAnisotropy = 1.0;                             // Anisotropy level
+    samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK; // Border color
+    samplerInfo.unnormalizedCoordinates = VK_FALSE;             // Normalized coordinates
+    samplerInfo.compareEnable = VK_FALSE;                       // Compare enable
+    samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;               // Compare operation
+    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;     // Mipmap mode
+    samplerInfo.mipLodBias = 0.0f;                              // Mipmap level of detail bias
+    samplerInfo.minLod = 0.0f;                                  // Minimum level of detail
+    samplerInfo.maxLod = 0.0f;                                  // Maximum level of detail
 
-	VkResult err = mDeviceFunctions->vkCreateSampler(mWindow->device(), &samplerInfo, nullptr, &mTextureSampler);
-	if (err != VK_SUCCESS)
-		qFatal("Failed to create texture sampler: %d", err);
+    VkResult err = mDeviceFunctions->vkCreateSampler(mWindow->device(), &samplerInfo, nullptr, &mTextureSampler);
+    if (err != VK_SUCCESS)
+        qFatal("Failed to create texture sampler: %d", err);
 }
 
 TextureHandle Renderer::createTexture(const char* filename)
@@ -985,28 +1151,28 @@ TextureHandle Renderer::createTexture(const char* filename)
     int texWidth, texHeight, texChannels;
     VkDeviceSize bufferSize{};
     VkFormat format{ VK_FORMAT_R8G8B8A8_SRGB }; //could be VK_FORMAT_R8G8B8_SRGB
-	BufferHandle stagingBuffer{};
+    BufferHandle stagingBuffer{};
     stbi_uc* pixelData{ nullptr };
 
-	//Open the file and read the data into the imageFileData vector
+    //Open the file and read the data into the imageFileData vector
     std::ifstream file(filename, std::ios::binary);
 
-	//if the file is not open, we create a default texture
-    if (!file.is_open()) 
+    //if the file is not open, we create a default texture
+    if (!file.is_open())
     {
         Texture* texture = new Texture();   // (filename);
-        bufferSize = texture->textureSize(); 
-        texChannels = texture->bytesPrPixel(); 
-        texWidth = texture->width(); 
+        bufferSize = texture->textureSize();
+        texChannels = texture->bytesPrPixel();
+        texWidth = texture->width();
         texHeight = texture->height();
         stagingBuffer = createGeneralBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         void* data{};
         mDeviceFunctions->vkMapMemory(mWindow->device(), stagingBuffer.mBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, texture->getPixels(), bufferSize);
     }
-	//if the file is open, we read the data into the imageFileData vector
+    //if the file is open, we read the data into the imageFileData vector
     else
     {
         const std::uint32_t size = std::filesystem::file_size(filename);
@@ -1014,29 +1180,29 @@ TextureHandle Renderer::createTexture(const char* filename)
         file.read(reinterpret_cast<char*>(imageFileData.data()), size);
 
         //Use the stb_image library to load the image
-		//Force all images to RGBA format
+        //Force all images to RGBA format
         pixelData = stbi_load_from_memory(imageFileData.data(), size, &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
 
-		//texChannels might be 1, 3 or 4, so hardcode it to 4
+        //texChannels might be 1, 3 or 4, so hardcode it to 4
         bufferSize = 4 * texWidth * texHeight;
         stagingBuffer = createGeneralBuffer(bufferSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT,
-            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+                                            VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         void* data{};
         mDeviceFunctions->vkMapMemory(mWindow->device(), stagingBuffer.mBufferMemory, 0, bufferSize, 0, &data);
         memcpy(data, pixelData, bufferSize);
     }
 
-	mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingBuffer.mBufferMemory);
-                                         
-	TextureHandle textureHandle = createImage(texWidth, texHeight, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
-		VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, format);
+    mDeviceFunctions->vkUnmapMemory(mWindow->device(), stagingBuffer.mBufferMemory);
+
+    TextureHandle textureHandle = createImage(texWidth, texHeight, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT,
+                                              VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, format);
 
     transitionImageLayout(textureHandle.mImage, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
     copyBufferToImage(stagingBuffer.mBuffer, textureHandle.mImage, texWidth, texHeight);
     transitionImageLayout(textureHandle.mImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-	textureHandle.mImageView = createImageView(textureHandle.mImage, format);
+    textureHandle.mImageView = createImageView(textureHandle.mImage, format);
 
     VkDescriptorSetAllocateInfo descriptorSetAllocateInfo{};
     descriptorSetAllocateInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -1064,12 +1230,12 @@ TextureHandle Renderer::createTexture(const char* filename)
     writeDescriptorSet.pImageInfo = &descriptorImageInfo;
 
     mDeviceFunctions->vkUpdateDescriptorSets(mWindow->device(), 1, &writeDescriptorSet, 0, nullptr);
-	
+
     destroyBuffer(stagingBuffer);
 
-	stbi_image_free(pixelData);
+    stbi_image_free(pixelData);
 
-	return textureHandle;
+    return textureHandle;
 }
 
 TextureHandle Renderer::createImage(int width, int height, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties, VkFormat format)
@@ -1080,19 +1246,19 @@ TextureHandle Renderer::createImage(int width, int height, VkBufferUsageFlags us
     textureInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;    // set the structure type
     textureInfo.usage = usage;                                   // buffer usage type
     textureInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	textureInfo.imageType = VK_IMAGE_TYPE_2D;
+    textureInfo.imageType = VK_IMAGE_TYPE_2D;
     textureInfo.extent.width = width;
-	textureInfo.extent.height = height;
-	textureInfo.extent.depth = 1;
-	textureInfo.mipLevels = 1;
-	textureInfo.arrayLayers = 1;
-	textureInfo.format = format;
-	textureInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-	textureInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-	//textureInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-	textureInfo.samples = VK_SAMPLE_COUNT_1_BIT;        // No multisampling
-	//textureInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-	textureInfo.flags = 0;
+    textureInfo.extent.height = height;
+    textureInfo.extent.depth = 1;
+    textureInfo.mipLevels = 1;
+    textureInfo.arrayLayers = 1;
+    textureInfo.format = format;
+    textureInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    textureInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //textureInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+    textureInfo.samples = VK_SAMPLE_COUNT_1_BIT;        // No multisampling
+    //textureInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    textureInfo.flags = 0;
 
     VkResult err = mDeviceFunctions->vkCreateImage(mWindow->device(), &textureInfo, nullptr, &textureHandle.mImage);
     if (err != VK_SUCCESS)
@@ -1126,28 +1292,28 @@ void Renderer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkI
 {
     VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
 
-	VkImageMemoryBarrier barrier{};
-	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-	barrier.oldLayout = oldLayout;
-	barrier.newLayout = newLayout;
-	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-	barrier.image = image;
-	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    VkImageMemoryBarrier barrier{};
+    barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+    barrier.oldLayout = oldLayout;
+    barrier.newLayout = newLayout;
+    barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+    barrier.image = image;
+    barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
     barrier.subresourceRange.baseArrayLayer = 0;
     barrier.subresourceRange.baseMipLevel = 0;
     barrier.subresourceRange.levelCount = 1;
-	barrier.subresourceRange.layerCount = 1;
+    barrier.subresourceRange.layerCount = 1;
 
     VkPipelineStageFlags sourceStage{};
     VkPipelineStageFlags destinationStage{};
 
     if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL)
     {
-		barrier.srcAccessMask = 0;
-		barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-		sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-		destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+        sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
+        destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
     }
     else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL)
     {
@@ -1164,22 +1330,22 @@ void Renderer::transitionImageLayout(VkImage image, VkImageLayout oldLayout, VkI
 
 void Renderer::copyBufferToImage(VkBuffer buffer, VkImage image, int width, int height)
 {
-	VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
+    VkCommandBuffer commandBuffer = beginTransientCommandBuffer();
 
-	VkBufferImageCopy region{};
-	region.bufferOffset = 0;
-	region.bufferRowLength = 0;
-	region.bufferImageHeight = 0;
-	region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-	region.imageSubresource.mipLevel = 0;
-	region.imageSubresource.baseArrayLayer = 0;
-	region.imageSubresource.layerCount = 1;
+    VkBufferImageCopy region{};
+    region.bufferOffset = 0;
+    region.bufferRowLength = 0;
+    region.bufferImageHeight = 0;
+    region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    region.imageSubresource.mipLevel = 0;
+    region.imageSubresource.baseArrayLayer = 0;
+    region.imageSubresource.layerCount = 1;
     region.imageOffset = { 0, 0, 0 };
     region.imageExtent = { static_cast<std::uint32_t>(width), static_cast<std::uint32_t>(height), 1 };
 
     mDeviceFunctions->vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-	endTransientCommandBuffer(commandBuffer);
+    endTransientCommandBuffer(commandBuffer);
 }
 
 VkImageView Renderer::createImageView(VkImage image, VkFormat format)
@@ -1210,9 +1376,9 @@ VkImageView Renderer::createImageView(VkImage image, VkFormat format)
 
 void Renderer::destroyTexture(TextureHandle& textureHandle)
 {
-	mDeviceFunctions->vkDeviceWaitIdle(mWindow->device());
-	mDeviceFunctions->vkFreeDescriptorSets(mWindow->device(), mTextureDescriptorPool, 1, &textureHandle.mTextureDescriptorSet);
-	mDeviceFunctions->vkDestroyImageView(mWindow->device(), textureHandle.mImageView, nullptr);
+    mDeviceFunctions->vkDeviceWaitIdle(mWindow->device());
+    mDeviceFunctions->vkFreeDescriptorSets(mWindow->device(), mTextureDescriptorPool, 1, &textureHandle.mTextureDescriptorSet);
+    mDeviceFunctions->vkDestroyImageView(mWindow->device(), textureHandle.mImageView, nullptr);
     mDeviceFunctions->vkDestroyImage(mWindow->device(), textureHandle.mImage, nullptr);
-	mDeviceFunctions->vkFreeMemory(mWindow->device(), textureHandle.mTextureMemory, nullptr);
+    mDeviceFunctions->vkFreeMemory(mWindow->device(), textureHandle.mTextureMemory, nullptr);
 }

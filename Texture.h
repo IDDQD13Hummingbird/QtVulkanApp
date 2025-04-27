@@ -19,13 +19,13 @@ public:
     ///Filename of the texture, with full path
     std::string textureFilename{};
 
-	int textureSize() const { return mColumns * mRows * mBytesPrPixel; }
+    int textureSize() const { return mColumns * mRows * mBytesPrPixel; }
 
-	unsigned char* getBitmap() { return mBitmap; }
+    unsigned char* getBitmap() { return mBitmap; }
     unsigned char* getPixels() { return pixels; }
     inline int width() const { return mColumns; }
     inline int height() const { return mRows; }
-	bool hasAlpha() const { return mAlphaUsed; }
+    bool hasAlpha() const { return mAlphaUsed; }
 
     inline int bytesPrPixel() const { return mBytesPrPixel;}
 

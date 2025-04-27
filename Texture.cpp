@@ -17,7 +17,7 @@ Texture::Texture(const std::string& filename)
     readBitmap(filename);       //reads the BMP into memory
     //bool success = readBitmap(filename);       //reads the BMP into memory
     //if(success)
-        //setTexture();               //set texture up for OpenGL
+    //setTexture();               //set texture up for OpenGL
 }
 
 unsigned int Texture::id() const
@@ -111,7 +111,7 @@ bool Texture::readBitmap(const std::string &filename)
             delete[] temp;
         }
 
-		//If bitmap is without alpha channel, we need to convert it to RGBA
+        //If bitmap is without alpha channel, we need to convert it to RGBA
         if (mBytesPrPixel == 3)
         {
             unsigned char* tempBitmap = new unsigned char[mColumns * mRows * mBytesPrPixel];
@@ -151,7 +151,7 @@ bool Texture::readBitmap(const std::string &filename)
 
             // Debug output for the processed pixel values
             //if(i % 40 == 0)
-                //qDebug() << "Pixel" << i << ": R=" << r << "G=" << g << "B=" << b << "A=" << a;
+            //qDebug() << "Pixel" << i << ": R=" << r << "G=" << g << "B=" << b << "A=" << a;
         }
 
         return true;
@@ -159,7 +159,7 @@ bool Texture::readBitmap(const std::string &filename)
     else
     {
         qDebug() << "ERROR: Can not read " << fileWithPath;
-		//Make dummy texture instead
+        //Make dummy texture instead
         makeDummyTexture();
     }
     return false;
@@ -178,7 +178,7 @@ void Texture::makeDummyTexture()
     pixels[13] = 255;
 
     mColumns = 2;
-	mRows = 2;
+    mRows = 2;
     mBytesPrPixel = 4;
     mAlphaUsed = true;
 
@@ -188,6 +188,6 @@ void Texture::makeDummyTexture()
 
     mBitmap = new unsigned char[mColumns * mRows * mBytesPrPixel];
     memcpy(mBitmap, pixels, mColumns * mRows * mBytesPrPixel);
-	//for (int i = 0; i < mColumns * mRows * mBytesPrPixel; i++)
-	//	mBitmap[i] = pixels[i];
+    //for (int i = 0; i < mColumns * mRows * mBytesPrPixel; i++)
+    //	mBitmap[i] = pixels[i];
 }
