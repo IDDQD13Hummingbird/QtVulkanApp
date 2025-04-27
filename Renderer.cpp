@@ -9,6 +9,9 @@
 #include "WorldAxis.h"
 #include "ObjMesh.h"
 #include "Enemy.h"
+#include <fstream>
+#include <filesystem>
+#include "stb_image.h"
 
 /*** Renderer class ***/
 Renderer::Renderer(QVulkanWindow *w, bool msaa)

@@ -25,6 +25,8 @@ qt_add_executable(QtVulkanApp
     Door.h Door.cpp
     stb_image.h stb_image.cpp
     Texture.h Texture.cpp
+    Heightmap.h Heightmap.cpp
+    Heightmap.h Heightmap.cpp
 
 
 )
