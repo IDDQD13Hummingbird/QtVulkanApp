@@ -1,6 +1,7 @@
 #include "Renderer.h"
 #include <QVulkanFunctions>
 #include <QFile>
+#include "Heightmap.h"
 #include "VulkanWindow.h"
 #include "WorldAxis.h"
 #include "ObjMesh.h"
@@ -25,11 +26,13 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
     mObjects.push_back((new ObjMesh("suzanne.obj")));
+    mObjects.push_back(new Heightmap());
 
     mObjects.at(0)->setName("tri");
     mObjects.at(1)->setName("quad");
     mObjects.at(2)->setName("axis");
 	mObjects.at(3)->setName("suzanne");
+
 
     // **************************************
     // Objects in optional map
