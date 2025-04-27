@@ -2,6 +2,7 @@
 #include <QVulkanFunctions>
 #include <QFile>
 #include <fstream>
+#include "Heightmap.h"
 #include "VulkanWindow.h"
 #include "WorldAxis.h"
 #include "Texture.h"
@@ -28,6 +29,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back(new Triangle());
     mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
+    mObjects.push_back((new Heightmap()));
     // Dag 030225
     mObjects.at(0)->setName("tri");
     mObjects.at(1)->setName("quad");
