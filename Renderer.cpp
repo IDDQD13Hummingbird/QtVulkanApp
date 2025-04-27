@@ -392,6 +392,60 @@ void Renderer::initSwapChainResources()
     mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 100.0f);
 }
 
+// !!! This part crashes
+void Renderer::UpdatePosition(VisualObject* ObjMesh,  VisualObject* Heightmap)
+{
+    ObjMesh = mObjects.at(0);
+    Heightmap = mObjects.at(14);
+    float my_x = ObjMesh->ExpungePosition().x();
+    float my_y = ObjMesh->ExpungePosition().y();
+    float my_z = ObjMesh->ExpungePosition().z();
+
+    for (size_t i = 0; i < Heightmap->sizeofIndices(); i += 3)
+    {
+        Vertex A = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i)];
+        Vertex B = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i + 1)];
+        Vertex C = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i + 2)];
+
+
+
+        //barycentric coordinates
+        QVector3D AB=QVector3D{B.x-A.x, B.y-A.y, B.z-A.z};
+        QVector3D AC=QVector3D{C.x-A.x, C.y-A.y, C.z-A.z};
+        float denominator = AB.x()*AC.z() -AB.z()*AC.x();   //CROSS PRODUCT OF AB, AC
+
+        if (denominator == 0.0f)
+        {
+            continue;
+        }
+
+
+        QVector3D PA=QVector3D{A.x-my_x, A.y-my_y, A.z-my_z};
+        QVector3D PB=QVector3D{B.x-my_x, B.y-my_y, B.z-my_z};
+        QVector3D PC=QVector3D{C.x-my_x, C.y-my_y, C.z-my_z};
+
+
+        float lambda1 = (PB.x()*PC.z() -PB.z()*PC.x())/denominator;
+        float lambda2 = (PC.x()*PA.z() -PC.z()*PA.x())/denominator;
+        float lambda3 = 1.0f - lambda1 - lambda2;
+
+
+        if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
+        {
+            // Point is inside the triangle, update player's height
+            float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
+            qDebug("inside triangle of  terrain");
+
+            ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), terrain_height+0.1f, ObjMesh->ExpungePosition().z()});
+
+            break;
+        }
+        else{
+            //qDebug("not inside triangle of  terrain");
+        }
+    }
+};
+///////////////////////////////////
 void Renderer::startNextFrame()
 {
     //Handeling input from keyboard and mouse is done in VulkanWindow

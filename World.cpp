@@ -4,24 +4,32 @@
 float randomFloat()
 {
     srand(time(NULL));
-    return (float)(rand()) / (float)(RAND_MAX);
+    return ((float)(rand()) / (float)(RAND_MAX)-(float)(rand()) / (float)(RAND_MAX));
 }
 
+void randomZ(std::vector<float> z, int times){
+
+    srand(time(NULL));
+    for(int i=0; i<times*times*4; i++){
+        z.push_back((float)(rand()) / (float)(RAND_MAX));
+    }
+};
+
 World::World() {
-    drawType = 1; // 0 = fill, 1 = line
+    drawType = 0; // 0 = fill, 1 = line
 
     //std::vector<float> dot_x = {};
     //std::vector<float> dot_y = {};
-    int dimension = 20; //how many layers of rows and columns of dots?
+    int dimension = 10; //how many layers of rows and columns of dots?
     int level; //Necessary tracker for incrementing.
     std::vector<float> dot_z = {};
-
+    randomZ(dot_z, dimension);
 
 
     int x_min=0;
-    int z_min=0;
+    int y_min=0;
     unsigned short x_max=dimension; //just the max boundaries of the input image
-    unsigned short z_max=dimension; //just the max boundaries of the input image
+    unsigned short y_max=dimension; //just the max boundaries of the input image
     float heightPlacement{10.f};
 
     float vertexXStart{0.f};            // if world origo should be at center use: {0.f - width * horisontalSpacing / 2};
@@ -30,37 +38,44 @@ World::World() {
 
     //MAKE VERTICES FIRST
     for (auto x=0; x<x_max; x++){   // was x++, y++
-        for (auto z=0; z<z_max; z++){
-            int index = (z + x * z_max) * 4; // Each pixel has 4 bytes (RGBA)
+        for (auto y=0; y<y_max; y++){
+            int index = (y + x * y_max) * 4; // Each pixel has 4 bytes (RGBA)
             if (index >= dimension * dimension * 4) // Extra safety check
             {
                 qDebug() << "Index out of bounds:" << index;
+
                 return;
             }
-            float heightFromBitmap = randomFloat();         // * heightSpacing + heightPlacement;
+            float heightFromBitmap;
+            /*if(!(sizeof(dot_z)<index)){
+                heightFromBitmap = dot_z[index];
+            }
+            else {*/
+                heightFromBitmap = randomFloat();     // * heightSpacing + heightPlacement;
+            //}
             //                                      x - value                      y-value               z-value
-            mVertices.emplace_back(Vertex{vertexXStart + (z * dimension), heightFromBitmap*dimension, vertexZStart - (x * dimension),
+            mVertices.emplace_back(Vertex{vertexZStart - (x * dimension), vertexXStart + (y * dimension), heightFromBitmap*dimension,
                                           //  R , G, B                    U, V
-                                          randomFloat(),randomFloat(), randomFloat(),           z / (z_max - 1.f), x / (x_max - 1.f)});
+                                          randomFloat(),randomFloat(), randomFloat(),           x / (x_max - 1.f), y / (y_max - 1.f)});
         }
     }
 
     // CONNECT VERTICES (TRIANGULATE THE PLANE) USING INDICES
     for(auto x=0; x<x_max-1; x++)
     {
-        for(auto z=0; z<z_max-1; z++)
+        for(auto y=0; y<y_max-1; y++)
         {
             //Indices for one quad:
-            mIndices.emplace_back(z + x * z_max);               // 0 + 0 * mWidth               = 0
-            mIndices.emplace_back(z + x * z_max + z_max + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
-            mIndices.emplace_back(z + x * z_max + z_max);       // 0 + 0 * mWidth + mWidth      = mWidth
-            mIndices.emplace_back(z + x * z_max);               // 0 + 0 * mWidth               = 0
-            mIndices.emplace_back(z + x * z_max + 1);           // 0 + 0 * mWidth + 1           = 1
-            mIndices.emplace_back(z + x * z_max + z_max + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
+            mIndices.emplace_back(y + x * y_max);               // 0 + 0 * mWidth               = 0
+            mIndices.emplace_back(y + x * y_max + y_max + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
+            mIndices.emplace_back(y + x * y_max + y_max);       // 0 + 0 * mWidth + mWidth      = mWidth
+            mIndices.emplace_back(y + x * y_max);               // 0 + 0 * mWidth               = 0
+            mIndices.emplace_back(y + x * y_max + 1);           // 0 + 0 * mWidth + 1           = 1
+            mIndices.emplace_back(y + x * y_max + y_max + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
         }
     }
 
-
+/*
     for (level = 0; level < dimension; level++){
         float value_y = level;
         for (int i = 0; i < dimension; i++){
@@ -84,5 +99,5 @@ World::World() {
 
 
     mMatrix.setToIdentity();
-    }
+    }*/
 }
