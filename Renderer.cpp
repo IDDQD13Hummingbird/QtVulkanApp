@@ -2,10 +2,12 @@
 #include <QVulkanFunctions>
 #include <QFile>
 #include "Door.h"
+//#include "Heightmap.h"
 #include "MonkeyHut.h"
 #include "Texture.h"
 #include "Triangle.h"
 #include "VulkanWindow.h"
+#include "World.h"
 #include "WorldAxis.h"
 #include "ObjMesh.h"
 #include "Enemy.h"
@@ -44,6 +46,8 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back((new Enemy()));
     mObjects.push_back((new MonkeyHut()));
     mObjects.push_back((new Door()));
+
+    mObjects.push_back((new World()));
 
 
     float a, b;
@@ -110,6 +114,9 @@ So mObjects[0] is the player.*/
 
     mObjects.at(13)->setName("Door");
     mObjects.at(13)->setPosition({10, 20, 0});
+
+    mObjects.at(14)->setName("World");
+    mObjects.at(14)->setPosition({0, 0, 0});
     // **************************************
     // Objects in optional map
     // **************************************
@@ -432,12 +439,10 @@ void Renderer::startNextFrame()
                         qDebug("Exiting the hut...");
                     };
                 }
-                    else if (i > 8 || i < 12){
-                    if(i != 12 && i != 13){
+                    else if (i > 8 && i < 12){
             mObjects.at(0)->move(0, 0, -120);
             qDebug("So you chose... Death.");
             qDebug("Final score: %i", mObjects.at(0)->score);
-                    }
                 };
             }
         }
