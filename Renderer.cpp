@@ -108,6 +108,11 @@ So mObjects[0] is the player.*/
     mObjects.at(11)->setName("Enemy");
     mObjects.at(11)->setPosition({a, b, 0});
 
+    for (int i = 0; i < mObjects.size(); i++){
+        if(mObjects.at(i)->getName() == "Enemy"){
+            mObjects.at(i)->toggleTexture(false);
+        }
+    }
 
     mObjects.at(12)->setName("MonkeyHut");
     mObjects.at(12)->setPosition({100, 100, -1.15});
@@ -343,8 +348,13 @@ void Renderer::initResources()
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mPipeline2);
+    if (result != VK_SUCCESS)
+        qFatal("Failed to create graphics pipeline: %d", result);
+
     //Making a pipeline for drawing lines
-    mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
+    mColorMaterial.pipeline = mPipeline1;
+    mColorMaterial.pipeline = mPipeline2;                           // reusing most of the settings from the first pipeline
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
@@ -395,24 +405,24 @@ void Renderer::initSwapChainResources()
 // !!! This part crashes
 void Renderer::UpdatePosition(VisualObject* ObjMesh,  VisualObject* Heightmap)
 {
-    ObjMesh = mObjects.at(0);
-    Heightmap = mObjects.at(14);
     float my_x = ObjMesh->ExpungePosition().x();
     float my_y = ObjMesh->ExpungePosition().y();
     float my_z = ObjMesh->ExpungePosition().z();
 
     for (size_t i = 0; i < Heightmap->sizeofIndices(); i += 3)
     {
+
         Vertex A = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i)];
         Vertex B = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i + 1)];
         Vertex C = Heightmap->ExpungeVertices()[Heightmap->ExpungeIndices(i + 2)];
 
 
-
         //barycentric coordinates
         QVector3D AB=QVector3D{B.x-A.x, B.y-A.y, B.z-A.z};
         QVector3D AC=QVector3D{C.x-A.x, C.y-A.y, C.z-A.z};
-        float denominator = AB.x()*AC.z() -AB.z()*AC.x();   //CROSS PRODUCT OF AB, AC
+        float denominator = AB.x()*AC.y() -AB.y()*AC.x();   //CROSS PRODUCT OF AB, AC
+
+        //qDebug("d: %i", denominator);
 
         if (denominator == 0.0f)
         {
@@ -425,23 +435,26 @@ void Renderer::UpdatePosition(VisualObject* ObjMesh,  VisualObject* Heightmap)
         QVector3D PC=QVector3D{C.x-my_x, C.y-my_y, C.z-my_z};
 
 
-        float lambda1 = (PB.x()*PC.z() -PB.z()*PC.x())/denominator;
-        float lambda2 = (PC.x()*PA.z() -PC.z()*PA.x())/denominator;
-        float lambda3 = 1.0f - lambda1 - lambda2;
-
+        float lambda1 = (PB.x()*PC.y() -PB.y()*PC.x())/denominator;
+        float lambda2 = (PC.x()*PA.y() -PC.y()*PA.x())/denominator;
+        float lambda3 = (PA.x()*PB.y() -PA.y()*PB.x())/denominator;
 
         if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
         {
             // Point is inside the triangle, update player's height
-            float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
-            qDebug("inside triangle of  terrain");
+            float terrain_height=lambda1 * A.z + lambda2 * B.z + lambda3 * C.z ;
+            //qDebug("inside triangle of  terrain");
 
-            ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), terrain_height+0.1f, ObjMesh->ExpungePosition().z()});
-
+            ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), ObjMesh->ExpungePosition().y(), /*ObjMesh->ExpungePosition().z()*/ terrain_height + 0.25f});
+            //qDebug("&i", ObjMesh->ExpungePosition().z());
             break;
         }
         else{
-            //qDebug("not inside triangle of  terrain");
+            //qDebug("not inside triangle of  terrain.");
+            if(mObjects.at(0)->iLive>0){
+            ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), ObjMesh->ExpungePosition().y(), 0.0f});
+            }
+            //ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), ObjMesh->ExpungePosition().y(), ObjMesh->ExpungePosition().z() -0.001f});
         }
     }
 };
@@ -452,6 +465,7 @@ void Renderer::startNextFrame()
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
+    UpdatePosition(mObjects.at(0), mObjects.at(14));
 
     //The object at position 0 is for instance the player
     int score = 0;
@@ -464,7 +478,10 @@ void Renderer::startNextFrame()
         if (amICollidingWithThis)
         {
             if (i != 1){
+                if (i == 14){
             //qDebug("My spider senses are tingling: %i", i);
+            UpdatePosition(mObjects.at(0), mObjects.at(14));
+                }
                 if (i > 1 && i < 9){
             mObjects.at(i)->move(0, 0, -100);
             mObjects.at(0)->score += 1;
@@ -494,6 +511,7 @@ void Renderer::startNextFrame()
                     };
                 }
                     else if (i > 8 && i < 12){
+            mObjects.at(0)->iLive=0;
             mObjects.at(0)->move(0, 0, -120);
             qDebug("So you chose... Death.");
             qDebug("Final score: %i", mObjects.at(0)->score);
@@ -533,14 +551,19 @@ void Renderer::startNextFrame()
         //Draw type
         if ((*it)->getDrawType() == 0)
             mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
-        else
-            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
-
+        else{
+            if ((*it)->IsTextured() == false){
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline2);
+            }
+            else{mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);}
+        }
         QMatrix4x4 mvp = mCamera.projectionMatrix() * mCamera.viewMatrix() * (*it)->getMatrix();
         setModelMatrix((*it)->getMatrix()); //mvp);
 
         // Bind the texture descriptor set
+        //if((*it)->IsTextured() == true){
         setTexture(mTextureHandle, commandBuffer);
+        //}
 
         mDeviceFunctions->vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(*it)->getVBuffer(), &vbOffset);
         //Check if we have an index buffer - if so, use Indexed draw
@@ -551,6 +574,10 @@ void Renderer::startNextFrame()
         }
         else   //No index buffer - use regular draw
             mDeviceFunctions->vkCmdDraw(commandBuffer, (*it)->getVertices().size(), 1, 0, 0);
+    }
+    for (std::vector<VisualObject*>::iterator it=mObjects.begin(); it!=mObjects.end(); it++)
+    {
+
     }
     /***************************************/
 
@@ -1045,6 +1072,11 @@ void Renderer::releaseResources()
     if (mPipeline1) {
         mDeviceFunctions->vkDestroyPipeline(dev, mPipeline1, nullptr);
         mPipeline1 = VK_NULL_HANDLE;
+    }
+
+    if (mPipeline2) {
+        mDeviceFunctions->vkDestroyPipeline(dev, mPipeline2, nullptr);
+        mPipeline2 = VK_NULL_HANDLE;
     }
 
     if (mColorMaterial.pipeline) {

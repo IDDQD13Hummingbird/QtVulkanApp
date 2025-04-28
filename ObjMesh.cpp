@@ -22,7 +22,7 @@ bool ObjMesh::readObjFile(const std::string& filename)
 {
     std::string tempName{};
 
-    tempName = "../../../Meshes/" + filename;
+    tempName = "../../Meshes/" + filename;
     qDebug() << "Reading " << tempName.c_str();
     std::ifstream fileIn;
     fileIn.open(tempName, std::ifstream::in);

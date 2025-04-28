@@ -49,11 +49,14 @@ public:
     int sizeofIndices();
     void MoveEnemy(int dir);
     float tick = 0;
+    int iLive = 1;
     int getTick();
 
     void Tack();
-
+    bool IsTextured();
+    void toggleTexture(bool to);
     int Direction();
+
 
 protected:
     std::vector<Vertex> mVertices;
@@ -64,6 +67,7 @@ protected:
     float mRadius = 0.25;
     BufferHandle mVertexBuffer;
     BufferHandle mIndexBuffer;
+    bool bTextured = true;
 
     //VkPrimitiveTopology mTopology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST }; //not used
 

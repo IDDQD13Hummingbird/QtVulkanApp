@@ -4,7 +4,7 @@
 float randomFloat()
 {
     srand(time(NULL));
-    return ((float)(rand()) / (float)(RAND_MAX)-(float)(rand()) / (float)(RAND_MAX));
+    return ((float)(rand()) / (float)(RAND_MAX));
 }
 
 void randomZ(std::vector<float> z, int times){
@@ -51,7 +51,7 @@ World::World() {
                 heightFromBitmap = dot_z[index];
             }
             else {*/
-                heightFromBitmap = randomFloat();     // * heightSpacing + heightPlacement;
+            heightFromBitmap = -0.25f+index/100;     // * heightSpacing + heightPlacement;
             //}
             //                                      x - value                      y-value               z-value
             mVertices.emplace_back(Vertex{vertexZStart - (x * dimension), vertexXStart + (y * dimension), heightFromBitmap*dimension,

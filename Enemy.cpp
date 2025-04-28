@@ -4,11 +4,13 @@
 Enemy::Enemy() : VisualObject()
 
 {
-    Vertex v1{-0.25f,   -0.25f,  0.0f,   1.0f, 0.2f, 0.2f,   0.0f, 0.0f};
-    Vertex v2{0.25f,   -0.25f,  0.0f,   1.0f, 0.5f, 0.2f,   0.0f, 0.0f};
-    Vertex v3{-0.25f,   0.25f,  0.0f,   1.0f, 0.75f, 0.25f, 0.0f, 0.0f};
-    Vertex v4{0.25f,   0.25f,  0.0f,   1.0f, 0.25f, 0.25f, 0.0f, 0.0f};
-    Vertex top{0.0f,  0.0f,  0.5f,   1.0f, 1.0f, 0.5f,   0.0f, 0.0f};
+    //drawType = 2;
+    //toggleTexture(false);
+    Vertex v1{-0.25f,   -0.25f,  0.0f,   1.0f, 0.2f, 0.2f,  0.6f, 0.46f};
+    Vertex v2{0.25f,   -0.25f,  0.0f,   1.0f, 0.5f, 0.2f,   0.6f, 0.46f};
+    Vertex v3{-0.25f,   0.25f,  0.0f,   1.0f, 0.75f, 0.25f, 0.6f, 0.46f};
+    Vertex v4{0.25f,   0.25f,  0.0f,   1.0f, 0.25f, 0.25f,  0.6f, 0.46f};
+    Vertex top{0.0f,  0.0f,  0.5f,   1.0f, 1.0f, 0.5f,      0.6f, 0.46f};
 
     //Pushing 1st triangle,
     mVertices.push_back(v1);  // 0

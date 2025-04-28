@@ -53,6 +53,17 @@ void VisualObject::Tack(){
     }
 }
 
+bool VisualObject::IsTextured()
+{
+    return bTextured;
+}
+
+void VisualObject::toggleTexture(bool to)
+{
+    qDebug("toggling texture to &i", to);
+    bTextured = to;
+}
+
 int VisualObject::getTick(){
     return tick;
 }
