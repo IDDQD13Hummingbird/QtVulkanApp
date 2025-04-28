@@ -4,7 +4,7 @@
 Enemy::Enemy() : VisualObject()
 
 {
-    //drawType = 2;
+    drawType = 2;
     //toggleTexture(false);
     Vertex v1{-0.25f,   -0.25f,  0.0f,   1.0f, 0.2f, 0.2f,  0.6f, 0.46f};
     Vertex v2{0.25f,   -0.25f,  0.0f,   1.0f, 0.5f, 0.2f,   0.6f, 0.46f};
