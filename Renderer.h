@@ -101,7 +101,7 @@ private:
 
     //Texture variables
     VkSurfaceFormatKHR mSurfaceFormat{};
-    TextureHandle mTextureHandle;
+    TextureHandle mTextureHandle[4];
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags requiredProperties);
 

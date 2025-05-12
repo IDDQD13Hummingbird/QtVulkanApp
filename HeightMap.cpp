@@ -3,7 +3,9 @@
 #include "stb_image.h"
 
 HeightMap::HeightMap()
-{ }
+{
+    textureType = Loss;
+}
 
 void HeightMap::makeTerrain(std::string heightMapImage)
 {

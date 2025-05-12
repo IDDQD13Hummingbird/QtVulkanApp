@@ -28,6 +28,7 @@ public:
     inline void setName(std::string name) { mName = name; }
     inline std::string getName() const { return mName; }
     inline int getDrawType() const { return drawType; }
+    inline int getTexture() const { return textureType; }
     inline QMatrix4x4 getMatrix() const {return mMatrix;}
 	inline std::vector<Vertex> getVertices() const { return mVertices; }
 	inline std::vector<uint32_t> getIndices() const { return mIndices; }
@@ -45,7 +46,24 @@ protected:
 	BufferHandle mIndexBuffer;
     //VkPrimitiveTopology mTopology{ VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST }; //not used
 
+
+
+
     int drawType{ 0 }; // 0 = fill, 1 = line
+    enum drawType {
+      fill = 0,
+      line = 1,
+      color = 3
+    };
+
+    int textureType{ 0 }; // 0 = hund, 1 = loss, 2 = orange, 3 = pink
+    enum textureType
+    {
+        Hund = 0,
+        Loss = 1,
+        Orange = 2,
+        Pink = 4
+    };
 };
 
 #endif // VISUALOBJECT_H
