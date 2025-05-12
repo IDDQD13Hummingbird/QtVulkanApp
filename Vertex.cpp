@@ -19,7 +19,7 @@ std::istream& operator>> (std::istream& is, Vertex& v) {
     return is;
 }
 
-Vertex::Vertex(QVector3D pos, QVector3D normal, QVector2D uv)
+Vertex::Vertex(QVector3D pos, QVector3D normal, QVector2D uv, bool opacity)
 {
 	x = pos.x();
 	y = pos.y();
@@ -28,5 +28,6 @@ Vertex::Vertex(QVector3D pos, QVector3D normal, QVector2D uv)
 	g = normal.y();
 	b = normal.z();
 	u = uv.x();
-	v = uv.y();
+    v = uv.y();
+    o = opacity;
 }

@@ -17,11 +17,12 @@ struct  Vertex {
     float b;
 	float u;	//Texture coordinates (UV)
     float v;
+    bool o;     //Opacity
 
 	Vertex() = default;
-    Vertex(QVector3D pos, QVector3D normal, QVector2D uv);
-    Vertex(float x, float y, float z, float r, float g, float b, float u, float v)
-        : x(x), y(y), z(z), r(r), g(g), b(b), u(u), v(v) {}
+    Vertex(QVector3D pos, QVector3D normal, QVector2D uv, bool opacity);
+    Vertex(float x, float y, float z, float r, float g, float b, float u, float v, bool o)
+        : x(x), y(y), z(z), r(r), g(g), b(b), u(u), v(v), o(o) {}
 
     //! Overloaded ostream operator which writes all vertex data on an open textfile stream
     friend std::ostream& operator<< (std::ostream&, const Vertex&);

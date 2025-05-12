@@ -9,9 +9,9 @@ ObjMesh::ObjMesh(const std::string& filename)
 {
     if (!readObjFile(filename))  //If file not read, just make a triangle
     {
-        mVertices.push_back(Vertex{ -0.5f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 0.0f });
-        mVertices.push_back(Vertex{ -0.5f,   -0.5f,  0.0f,   0.0f, 1.0f, 0.0f, 0.0f, 0.0f });
-        mVertices.push_back(Vertex{ 0.0f,   0.0f,  0.0f,   0.0f, 0.0f, 1.0f, 0.0f, 0.0f });
+        mVertices.push_back(Vertex{ -0.5f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 0.0f , true});
+        mVertices.push_back(Vertex{ -0.5f,   -0.5f,  0.0f,   0.0f, 1.0f, 0.0f, 0.0f, 0.0f , true});
+        mVertices.push_back(Vertex{ 0.0f,   0.0f,  0.0f,   0.0f, 0.0f, 1.0f, 0.0f, 0.0f , true});
         qDebug("Made you a triangle instead...");
     }
 
@@ -143,12 +143,12 @@ bool ObjMesh::readObjFile(const std::string& filename)
 
                 if (uv > -1)    //uv present!
                 {
-                    Vertex tempVert(tempVertecies[index], tempNormals[normal], tempUVs[uv]);
+                    Vertex tempVert(tempVertecies[index], tempNormals[normal], tempUVs[uv], true);
                     mVertices.push_back(tempVert);
                 }
                 else            //no uv in mesh data, use 0, 0 as uv
                 {
-                    Vertex tempVert(tempVertecies[index], tempNormals[normal], QVector2D(0.0f, 0.0f));
+                    Vertex tempVert(tempVertecies[index], tempNormals[normal], QVector2D(0.0f, 0.0f), true);
                     mVertices.push_back(tempVert);
                 }
                 //We have now handeled one Vertex on the f-line - add it to indices

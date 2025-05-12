@@ -90,7 +90,7 @@ void Renderer::initResources()
 
     /********************************* Shader bindings: *********************************/
     //Descritpion of the attributes used for vertices in the shader
-	VkVertexInputAttributeDescription vertexAttrDesc[3];
+    VkVertexInputAttributeDescription vertexAttrDesc[4];
 	vertexAttrDesc[0].location = 0;     //position
     vertexAttrDesc[0].binding = 0;
 	vertexAttrDesc[0].format = VK_FORMAT_R32G32B32_SFLOAT;
@@ -105,6 +105,11 @@ void Renderer::initResources()
 	vertexAttrDesc[2].binding = 0;
 	vertexAttrDesc[2].format = VK_FORMAT_R32G32_SFLOAT;
 	vertexAttrDesc[2].offset = 6 * sizeof(float);           // 6 floats before the UVs are found
+
+    vertexAttrDesc[3].location = 3;	    //opacity
+    vertexAttrDesc[3].binding = 0;
+    vertexAttrDesc[3].format = VK_FORMAT_R32G32_SFLOAT;
+    vertexAttrDesc[3].offset = 8 * sizeof(float);           // 8 floats before the opacity is found
 
 	VkPipelineVertexInputStateCreateInfo vertexInputInfo{};	    // C++11: {} is the same as memset(&bufferInfo, 0, sizeof(bufferInfo));
     vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
