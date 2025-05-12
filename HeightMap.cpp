@@ -4,7 +4,7 @@
 
 HeightMap::HeightMap()
 {
-    textureType = Loss;
+    textureType = Hund;
 }
 
 void HeightMap::makeTerrain(std::string heightMapImage)

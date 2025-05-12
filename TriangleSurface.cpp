@@ -3,6 +3,7 @@
 #include <QDebug>
 TriangleSurface::TriangleSurface() : VisualObject()
 {
+    textureType = Loss;
     Vertex v1{ 0.0f,  0.0f,  0.0f,   1.0f, 0.0f, 0.0f,  0.0f, 0.0f, true};  //  bottom-left corner
     Vertex v2{ 1.0f,  0.0f,  0.0f,   0.0f, 1.0f, 0.0f,  1.0f, 0.0f, true}; //  bottom-right corner
     Vertex v3{ 0.0f,  1.0f,  0.0f,   0.0f, 0.0f, 1.0f,  0.0f, 1.0f, true}; //  top-left corner

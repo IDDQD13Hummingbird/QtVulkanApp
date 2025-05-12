@@ -5,12 +5,23 @@
 #include <QDebug>
 #include <QVector3D>
 
+int ObjMesh::getTexture()
+{
+    return ObjtextureType;
+}
+
+ObjMesh::ObjMesh(): VisualObject()
+{
+    textureType = getTexture();
+}
+
 ObjMesh::ObjMesh(const std::string& filename)
 {
+    textureType = 2;
     if (!readObjFile(filename))  //If file not read, just make a triangle
     {
-        mVertices.push_back(Vertex{ -0.5f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 0.0f, 0.0f , true});
-        mVertices.push_back(Vertex{ -0.5f,   -0.5f,  0.0f,   0.0f, 1.0f, 0.0f, 0.0f, 0.0f , true});
+        mVertices.push_back(Vertex{ -0.5f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f, 0.0f , true});
+        mVertices.push_back(Vertex{ -0.5f,   -0.5f,  0.0f,   0.0f, 1.0f, 0.0f, 1.0f, 1.0f , true});
         mVertices.push_back(Vertex{ 0.0f,   0.0f,  0.0f,   0.0f, 0.0f, 1.0f, 0.0f, 0.0f , true});
         qDebug("Made you a triangle instead...");
     }
@@ -164,4 +175,5 @@ bool ObjMesh::readObjFile(const std::string& filename)
 
     return true;
 }
+
 

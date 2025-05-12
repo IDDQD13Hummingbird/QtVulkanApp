@@ -7,10 +7,13 @@
 class ObjMesh : public VisualObject
 {
 public:
+    ObjMesh();
     ObjMesh(const std::string& filename);
 
 private:
 	bool readObjFile(const std::string& filename);
+    int ObjtextureType{2};
+    int getTexture();
 };
 
 #endif // OBJMESH_H
