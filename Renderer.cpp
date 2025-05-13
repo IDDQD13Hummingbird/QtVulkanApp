@@ -336,9 +336,7 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
         //barycentric coordinates
         QVector3D AB=QVector3D{B.x-A.x, B.y-A.y, B.z-A.z};
         QVector3D AC=QVector3D{C.x-A.x, C.y-A.y, C.z-A.z};
-        float denominator = AB.x()*AC.y() -AB.y()*AC.x();   //CROSS PRODUCT OF AB, AC
-
-        //qDebug("d: %i", denominator);
+        float denominator = AB.x()*AC.z() -AB.z()*AC.x();   //CROSS PRODUCT OF AB, AC
 
         if (denominator == 0.0f)
         {
@@ -351,23 +349,23 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
         QVector3D PC=QVector3D{C.x-my_x, C.y-my_y, C.z-my_z};
 
 
-        float lambda1 = (PB.x()*PC.y() -PB.y()*PC.x())/denominator;
-        float lambda2 = (PC.x()*PA.y() -PC.y()*PA.x())/denominator;
-        float lambda3 = (PA.x()*PB.y() -PA.y()*PB.x())/denominator;
+        float lambda1 = (PB.x()*PC.z() -PB.z()*PC.x())/denominator;
+        float lambda2 = (PC.x()*PA.z() -PC.z()*PA.x())/denominator;
+        float lambda3 = (PA.x()*PB.z() -PA.z()*PB.x())/denominator;
 
         if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
         {
             // Point is inside the triangle, update player's height
-            float terrain_height=lambda1 * A.z + lambda2 * B.z + lambda3 * C.z ;
+            float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
             qDebug("inside triangle of  terrain");
 
-            Object->setPosition(Object->getPosition().x(), Object->getPosition().y(), /*Object->getPosition().z()*/terrain_height + 0.25f);
-            //qDebug("&i", Object->getPosition().z());
+            Object->setPosition(Object->getPosition().x(), terrain_height+0.1f, Object->getPosition().z());
+            Object->move(Object->getPosition().x(), terrain_height+0.1f, Object->getPosition().z());
             break;
         }
         else{
-            //qDebug("not inside triangle of  terrain.");
-            //ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), ObjMesh->ExpungePosition().y(), ObjMesh->ExpungePosition().z() -0.001f});
+            //qDebug("not inside triangle of  terrain");
+            //qDebug()<<lambda1<<", "<<lambda2<<", "<<lambda3;
         }
     }
 };
@@ -423,9 +421,13 @@ void Renderer::startNextFrame()
     mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
     for (int i{0}; i < mObjects.size(); i++ )
     {
+        UpdatePosition(mObjects.at(1), mObjects.at(0));
+
         if(mObjects.at(i)->getName()=="Player"||mObjects.at(i)->getName()=="NPC"){
-        UpdatePosition(mObjects.at(i), mObjects.at(0));
+        //UpdatePosition(mObjects.at(i), mObjects.at(0));
         }
+
+
         if(mObjects.at(i)->getName()=="NPC"){
             if(mObjects.at(1)->isWithinRange(mObjects.at(i)->getPosition(), 3.0f)){
                 mObjects.at(i)->pickTexture(2);
@@ -446,6 +448,8 @@ void Renderer::startNextFrame()
         }
 
     };
+
+    //qDebug()<<mObjects.at(1)->getPosition();
     
     mWindow->frameReady();
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
@@ -911,9 +915,14 @@ void Renderer::releaseResources()
     }
 
     // Destroy textures
-    for(int temp_texture = 0; temp_texture < sizeof(mTextureHandle); temp_texture++){
+    /*for(int temp_texture = 0; temp_texture < sizeof(mTextureHandle); temp_texture++){
     destroyTexture(mTextureHandle[temp_texture]);
-    }
+    }*/
+
+    destroyTexture(mTextureHandle[0]);
+    destroyTexture(mTextureHandle[1]);
+    destroyTexture(mTextureHandle[2]);
+    destroyTexture(mTextureHandle[3]);
 
 	if (mTextureSampler) {
 		mDeviceFunctions->vkDestroySampler(dev, mTextureSampler, nullptr);

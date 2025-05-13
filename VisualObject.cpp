@@ -74,7 +74,7 @@ bool VisualObject::isWithinRange(QVector3D Position, float Range)
 {
     QVector3D VectorDist = /*other->*/mPosition - Position;
     float Dist = VectorDist.length();
-    qDebug()<< "distance:" << Dist;
+    //qDebug()<< "distance:" << Dist;
     float spotDist = /*other->*/mRadius+Range;
     if (Dist < spotDist) {
         //qDebug("object is colliding");

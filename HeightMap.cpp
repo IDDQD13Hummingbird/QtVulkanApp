@@ -85,15 +85,30 @@ void HeightMap::makeTerrain(unsigned char* textureData, int widthIn, int heightI
         for(int w{0}; w < width-1; ++w)    //width - 1 because we draw the last quad from width - 1 and in positive x direction
         {
 			//Indices for one quad:
+            mIndices.emplace_back(w + d * width);
+            mIndices.emplace_back(w + d * width + width);       // 0 + 0 * mWidth + mWidth      = mWidth           // 0 + 0 * mWidth               = 0          // 0 + 0 * mWidth + 1           = 1
+            mIndices.emplace_back(w + d * width + width + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
             mIndices.emplace_back(w + d * width);               // 0 + 0 * mWidth               = 0
             mIndices.emplace_back(w + d * width + width + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
-            mIndices.emplace_back(w + d * width + width);       // 0 + 0 * mWidth + mWidth      = mWidth
-            mIndices.emplace_back(w + d * width);               // 0 + 0 * mWidth               = 0
-            mIndices.emplace_back(w + d * width + 1);           // 0 + 0 * mWidth + 1           = 1
-            mIndices.emplace_back(w + d * width + width + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
+            mIndices.emplace_back(w + d * width + 1);
         }
     }
-
+    /*
+    // CONNECT VERTICES (TRIANGULATE THE PLANE) USING INDICES
+    for(auto x=0; x<width-1; x++)
+    {
+        for(auto z=0; z<depth-1; z++)
+        {
+            //Indices for one quad:
+            mIndices.emplace_back(z + x * depth);               // 0 + 0 * mWidth               = 0
+            mIndices.emplace_back(z + x * depth + depth + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
+            mIndices.emplace_back(z + x * depth + depth);       // 0 + 0 * mWidth + mWidth      = mWidth
+            mIndices.emplace_back(z + x * depth);               // 0 + 0 * mWidth               = 0
+            mIndices.emplace_back(z + x * depth + 1);           // 0 + 0 * mWidth + 1           = 1
+            mIndices.emplace_back(z + x * depth + depth + 1);   // 0 + 0 * mWidth + mWidth + 1  = mWidth + 1
+        }
+    }
+    */
 	//Calculating the normals for the mesh
     //Function not made yet:
     //calculateHeighMapNormals();
