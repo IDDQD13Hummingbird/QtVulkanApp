@@ -4,20 +4,24 @@
 #include <sstream>
 #include <QDebug>
 #include <QVector3D>
-
+/*
 int ObjMesh::getTexture()
 {
     return ObjtextureType;
+}
+void ObjMesh::setTexture(int tex)
+{
+    ObjtextureType = tex;
 }
 
 ObjMesh::ObjMesh(): VisualObject()
 {
     textureType = getTexture();
 }
-
+*/
 ObjMesh::ObjMesh(const std::string& filename)
 {
-    textureType = 2;
+    //setTexture(0);
     if (!readObjFile(filename))  //If file not read, just make a triangle
     {
         mVertices.push_back(Vertex{ -0.5f,   0.0f,  0.0f,   1.0f, 0.0f, 0.0f, 1.0f, 0.0f , true});
@@ -28,6 +32,7 @@ ObjMesh::ObjMesh(const std::string& filename)
 
     mMatrix.translate(1.f, 0, 0);
 }
+
 
 bool ObjMesh::readObjFile(const std::string& filename)
 {

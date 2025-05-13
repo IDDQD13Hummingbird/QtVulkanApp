@@ -39,7 +39,7 @@ protected:
 
     QVulkanWindowRenderer* mRenderer{ nullptr };
     VisualObject* mSelectedObject{ nullptr };
-    int mIndex{0};
+    int mIndex{1};
 
 private:
     void setCameraSpeed(float value);

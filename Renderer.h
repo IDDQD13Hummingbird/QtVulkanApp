@@ -38,6 +38,7 @@ public:
     std::vector<VisualObject*>& getObjects() { return mObjects; }
     std::unordered_map<std::string, VisualObject*>& getMap() { return mMap; }
 
+    void UpdatePosition(VisualObject *Object, VisualObject *Heightmap);
 protected:
 
     //Creates the Vulkan shader module from the precompiled shader files in .spv format
@@ -101,7 +102,7 @@ private:
 
     //Texture variables
     VkSurfaceFormatKHR mSurfaceFormat{};
-    TextureHandle mTextureHandle[4];
+    TextureHandle mTextureHandle[4]; // int to array for multi texture support
 
 	uint32_t findMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags requiredProperties);
 

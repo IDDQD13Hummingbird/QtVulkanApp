@@ -26,18 +26,27 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
+    mObjects.push_back(new HeightMap());
+    mObjects.push_back(new ObjMesh(assetPath + "cylinder.obj"));
     mObjects.push_back(new Triangle());
     mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
-	mObjects.push_back(new HeightMap());
     mObjects.push_back(new ObjMesh(assetPath + "suzanne.obj"));
+    mObjects.push_back(new ObjMesh(assetPath + "cylinder.obj"));
     // Dag 030225
-    mObjects.at(0)->setName("tri");
-    mObjects.at(1)->setName("quad");
-    mObjects.at(2)->setName("axis");
-	mObjects.at(3)->setName("terrain");
-    mObjects.at(4)->setName("suzanne");
-    static_cast<HeightMap*>(mObjects.at(3))->makeTerrain(assetPath + "Heightmap.jpg");
+    mObjects.at(0)->setName("terrain");
+    mObjects.at(1)->setName("Player");
+    mObjects.at(1)->move(2, -1, 2);
+    mObjects.at(1)->pickTexture(2);
+    mObjects.at(2)->setName("tri");
+    mObjects.at(3)->setName("quad");
+    mObjects.at(4)->setName("axis");
+    mObjects.at(5)->setName("suzanne");
+    //mObjects.at(5)->scale2(0.5, 0.2);
+    mObjects.at(6)->setName("NPC");
+    mObjects.at(6)->pickTexture(3);
+    mObjects.at(6)->move(2, -1, 1);
+    static_cast<HeightMap*>(mObjects.at(0))->makeTerrain(assetPath + "Heightmap.jpg");
 
     // **************************************
     // Objects in optional map
@@ -310,13 +319,65 @@ void Renderer::initSwapChainResources()
     mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 500.0f);
 }
 
+void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
+{
+    float my_x = Object->getPosition().x();
+    float my_y = Object->getPosition().y();
+    float my_z = Object->getPosition().z();
+
+    for (size_t i = 0; i < Heightmap->getIndicesSize(); i += 3)
+    {
+
+        Vertex A = Heightmap->getVertices()[Heightmap->getIndex(i)];
+        Vertex B = Heightmap->getVertices()[Heightmap->getIndex(i + 1)];
+        Vertex C = Heightmap->getVertices()[Heightmap->getIndex(i + 2)];
+
+
+        //barycentric coordinates
+        QVector3D AB=QVector3D{B.x-A.x, B.y-A.y, B.z-A.z};
+        QVector3D AC=QVector3D{C.x-A.x, C.y-A.y, C.z-A.z};
+        float denominator = AB.x()*AC.y() -AB.y()*AC.x();   //CROSS PRODUCT OF AB, AC
+
+        //qDebug("d: %i", denominator);
+
+        if (denominator == 0.0f)
+        {
+            continue;
+        }
+
+
+        QVector3D PA=QVector3D{A.x-my_x, A.y-my_y, A.z-my_z};
+        QVector3D PB=QVector3D{B.x-my_x, B.y-my_y, B.z-my_z};
+        QVector3D PC=QVector3D{C.x-my_x, C.y-my_y, C.z-my_z};
+
+
+        float lambda1 = (PB.x()*PC.y() -PB.y()*PC.x())/denominator;
+        float lambda2 = (PC.x()*PA.y() -PC.y()*PA.x())/denominator;
+        float lambda3 = (PA.x()*PB.y() -PA.y()*PB.x())/denominator;
+
+        if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
+        {
+            // Point is inside the triangle, update player's height
+            float terrain_height=lambda1 * A.z + lambda2 * B.z + lambda3 * C.z ;
+            qDebug("inside triangle of  terrain");
+
+            Object->setPosition(Object->getPosition().x(), Object->getPosition().y(), /*Object->getPosition().z()*/terrain_height + 0.25f);
+            //qDebug("&i", Object->getPosition().z());
+            break;
+        }
+        else{
+            //qDebug("not inside triangle of  terrain.");
+            //ObjMesh->setPosition({ObjMesh->ExpungePosition().x(), ObjMesh->ExpungePosition().y(), ObjMesh->ExpungePosition().z() -0.001f});
+        }
+    }
+};
+
 void Renderer::startNextFrame()
 {
     //Handeling input from keyboard and mouse is done in VulkanWindow
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
-
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
 	setRenderPassParameters(commandBuffer);
@@ -343,7 +404,7 @@ void Renderer::startNextFrame()
         // Bind the texture descriptor set
         int temp_texture = (*it)->getTexture();
         setTexture(mTextureHandle[temp_texture], commandBuffer);
-        
+
         mDeviceFunctions->vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(*it)->getVBuffer(), &vbOffset);
 		//Check if we have an index buffer - if so, use Indexed draw
         if ((*it)->getIndices().size() > 0)
@@ -359,7 +420,32 @@ void Renderer::startNextFrame()
     mDeviceFunctions->vkCmdEndRenderPass(commandBuffer);
 
     //Hardcoded!!!
-    mObjects.at(1)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    for (int i{0}; i < mObjects.size(); i++ )
+    {
+        if(mObjects.at(i)->getName()=="Player"||mObjects.at(i)->getName()=="NPC"){
+        UpdatePosition(mObjects.at(i), mObjects.at(0));
+        }
+        if(mObjects.at(i)->getName()=="NPC"){
+            if(mObjects.at(1)->isWithinRange(mObjects.at(i)->getPosition(), 3.0f)){
+                mObjects.at(i)->pickTexture(2);
+            }
+            else{
+                mObjects.at(i)->pickTexture(3);
+            }
+        }
+
+        bool amICollidingWithThis;
+        if(i != 1){
+        amICollidingWithThis = mObjects.at(1)->isColliding(mObjects.at(i)->getPosition(),
+                                                           mObjects.at(i)->getRadius());
+            if (amICollidingWithThis)
+                {
+
+                }
+        }
+
+    };
     
     mWindow->frameReady();
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate

@@ -26,6 +26,19 @@ struct TextureHandle
 	VkDescriptorSet mTextureDescriptorSet{ VK_NULL_HANDLE };
 };
 
+enum drawType {
+    fill = 0,
+    line = 1,
+    color = 3
+};
+enum textureType
+{
+    Hund = 0,
+    Loss = 1,
+    Orange = 2,
+    Pink = 4
+};
+
 static const std::string assetPath = "../../Assets/";
 
 #endif // UTILITIES_H
