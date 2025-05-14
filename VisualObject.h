@@ -47,6 +47,15 @@ public:
     inline float getRadius() const {return mRadius;}
     bool isWithinRange(QVector3D Position, float Range);
 
+    float deltaTime = 0;
+    float enemy_speed = 0.025;
+    QVector3D evaluateBezier(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
+    void moveBeizerPath(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
+    void setPositionby2DVector(QVector2D &newPosition);
+
+
+
+
 protected:
     std::vector<Vertex> mVertices;
     std::vector<uint32_t> mIndices;

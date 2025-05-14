@@ -36,7 +36,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     // Dag 030225
     mObjects.at(0)->setName("terrain");
     mObjects.at(1)->setName("Player");
-    mObjects.at(1)->move(2, -1, 2);
+    mObjects.at(1)->move(10, -1, 10);
     mObjects.at(1)->pickTexture(2);
     mObjects.at(2)->setName("tri");
     mObjects.at(3)->setName("quad");
@@ -50,8 +50,6 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
     mObjects.at(0)->move(0, 0, 0);
     static_cast<HeightMap*>(mObjects.at(0))->makeTerrain(assetPath + "Heightmap.jpg");
-
-
     // **************************************
     // Objects in optional map
     // **************************************
@@ -473,14 +471,14 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
         float lambda2 = (PC.x()*PA.y() -PC.y()*PA.x())/denominator;
         float lambda3 = 1-lambda1-lambda2;
 
-        qDebug()<<Object->getPosition().x()<<", "<<Object->getPosition().z();
+        //qDebug()<<Object->getPosition().x()<<", "<<Object->getPosition().z();
 
         if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
         {
             // Point is inside the triangle, update player's height
             float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
             qDebug("inside triangle of  terrain");
-            qDebug()<<lambda1<<", "<<lambda2<<", "<<lambda3;
+            //qDebug()<<lambda1<<", "<<lambda2<<", "<<lambda3;
 
             Object->setPositionbyVector({Object->getPosition().x(), terrain_height + 0.1f, Object->getPosition().z()});
             break;
@@ -543,12 +541,19 @@ void Renderer::startNextFrame()
 
     //Hardcoded!!!
     mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    if(mObjects.at(0)->deltaTime>=4){
+        mObjects.at(0)->deltaTime -= mObjects.at(0)->enemy_speed;
+    }
+    else{
+        mObjects.at(0)->deltaTime += mObjects.at(0)->enemy_speed;
+        }
+    UpdatePosition(mObjects.at(1), mObjects.at(0)); //
     for (int i{0}; i < mObjects.size(); i++ )
     {
-        UpdatePosition(mObjects.at(1), mObjects.at(0));
+
 
         if(mObjects.at(i)->getName()=="Player"||mObjects.at(i)->getName()=="NPC"){
-        //UpdatePosition(mObjects.at(i), mObjects.at(0));
+        UpdatePosition(mObjects.at(i), mObjects.at(0));
         }
 
 
@@ -558,6 +563,9 @@ void Renderer::startNextFrame()
             }
             else{
                 mObjects.at(i)->pickTexture(3);
+                QVector3D path = mObjects.at(i)->evaluateBezier(a, b, c, d, mObjects.at(0)->deltaTime);
+                QVector2D follow = {path.x(), path.z()};
+                mObjects.at(i)->setPositionby2DVector(follow);
             }
         }
 

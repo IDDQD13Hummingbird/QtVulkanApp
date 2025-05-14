@@ -44,6 +44,13 @@ public:
 
     float getPositionInTerrain(VisualObject *Terrain, float PositionX, float PositionZ);
 
+
+    //(-2.5, -2.0), (1.0, -0.5), (-1.5, 1.0) og (1.5, 2.5)
+    QVector3D a = {-2.5, 0, -2.0};
+    QVector3D b = {1.0, 0, -0.5};
+    QVector3D c = {-1.5, 0, 1.0};
+    QVector3D d = {1.5, 0, 2.5};
+
 protected:
 
     //Creates the Vulkan shader module from the precompiled shader files in .spv format

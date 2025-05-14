@@ -6,8 +6,7 @@ class BezierCurve
 {
 public:
     BezierCurve();
-    QVector3D evaluateBezier(float t);
-    QVector3D c[4];
+    QVector3D evaluateBezier(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
 };
 
 #endif // BEZIERCURVE_H
