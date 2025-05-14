@@ -88,6 +88,10 @@ protected:
 
     VkQueue mGraphicsQueue{ VK_NULL_HANDLE };
 
+    bool dir = true;
+
+    float local_t = 0;
+
 private:
     friend class VulkanWindow;
 	std::vector<VisualObject*> mObjects;    //All objects in the program  

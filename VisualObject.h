@@ -53,8 +53,7 @@ public:
     void moveBeizerPath(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
     void setPositionby2DVector(QVector2D &newPosition);
 
-
-
+    QVector3D followTarget(QVector3D target, float time);
 
 protected:
     std::vector<Vertex> mVertices;

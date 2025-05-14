@@ -541,12 +541,21 @@ void Renderer::startNextFrame()
 
     //Hardcoded!!!
     mObjects.at(2)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
-    if(mObjects.at(0)->deltaTime>=4){
+    //qDebug()<<mObjects.at(0)->deltaTime;
+    if(mObjects.at(0)->deltaTime>=1){
+        dir = false;
+    }
+    else if(mObjects.at(0)->deltaTime<0){
+        dir = true;
+    }
+
+    if(!dir){
         mObjects.at(0)->deltaTime -= mObjects.at(0)->enemy_speed;
     }
-    else{
+    else if(dir){
         mObjects.at(0)->deltaTime += mObjects.at(0)->enemy_speed;
-        }
+    }
+
     UpdatePosition(mObjects.at(1), mObjects.at(0)); //
     for (int i{0}; i < mObjects.size(); i++ )
     {
@@ -560,8 +569,14 @@ void Renderer::startNextFrame()
         if(mObjects.at(i)->getName()=="NPC"){
             if(mObjects.at(1)->isWithinRange(mObjects.at(i)->getPosition(), 3.0f)){
                 mObjects.at(i)->pickTexture(2);
+                mObjects.at(i)->setPositionbyVector(mObjects.at(i)->followTarget(mObjects.at(1)->getPosition(), local_t));
+                if(mObjects.at(1)->isColliding(mObjects.at(i)->getPosition(), 3.0f)){local_t += mObjects.at(i)->enemy_speed;}
+                else{local_t=0;}
+                //qDebug()<<local_t;
+
             }
             else{
+                local_t = 0;
                 mObjects.at(i)->pickTexture(3);
                 QVector3D path = mObjects.at(i)->evaluateBezier(a, b, c, d, mObjects.at(0)->deltaTime);
                 QVector2D follow = {path.x(), path.z()};

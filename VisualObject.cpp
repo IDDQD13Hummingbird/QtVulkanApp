@@ -65,7 +65,7 @@ void VisualObject::setPositionby2DVector(QVector2D &newPosition)
 
 QVector3D VisualObject::evaluateBezier(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t)
 {
-    if(t<0||t>4){
+    if(t>-0.1||t<4.1){
         QVector3D P = (1-t)*a + t*b;
         QVector3D Q = (1-t)*b + t*c;
         QVector3D R = (1-t)*c + t*d;
@@ -81,6 +81,12 @@ QVector3D VisualObject::evaluateBezier(QVector3D a, QVector3D b, QVector3D c, QV
         qDebug()<<"Failed to Beizer, gave you a 0.";
         return {0, 0, 0};
     }
+}
+
+QVector3D VisualObject::followTarget(QVector3D target, float time)
+{
+        QVector3D path = (1-time)*mPosition + time*target;
+        return path;
 }
 
 bool VisualObject::isColliding(QVector3D Position, float Radius)
