@@ -37,8 +37,13 @@ public:
 
     std::vector<VisualObject*>& getObjects() { return mObjects; }
     std::unordered_map<std::string, VisualObject*>& getMap() { return mMap; }
-
+    
+    ///////So give it a try.
     void UpdatePosition(VisualObject *Object, VisualObject *Heightmap);
+
+
+    float getPositionInTerrain(VisualObject *Terrain, float PositionX, float PositionZ);
+
 protected:
 
     //Creates the Vulkan shader module from the precompiled shader files in .spv format
@@ -122,6 +127,7 @@ private:
 		//VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };    //also should have had a spesific pipeline layout
         VkPipeline pipeline{ VK_NULL_HANDLE };
     } mColorMaterial;
+    VkPipeline mPipeline2;
 };
 
 #endif // RENDERER_H

@@ -257,7 +257,7 @@ void Renderer::initResources()
     depthStencil.depthCompareOp = VK_COMPARE_OP_LESS_OR_EQUAL;
     pipelineInfo.pDepthStencilState = &depthStencil;
 
-	// **** Dynamic State **** - dynamic states can be changed without recreating the pipeline
+    // **** Dynamic State **** - dynamic states can be changed without recreating the pipeline
     VkDynamicState dynamicEnable[] = { VK_DYNAMIC_STATE_VIEWPORT, VK_DYNAMIC_STATE_SCISSOR };
     VkPipelineDynamicStateCreateInfo dynamic{};
     dynamic.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
@@ -272,8 +272,16 @@ void Renderer::initResources()
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
-	//Making a pipeline for drawing lines
-	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mPipeline2);
+    if (result != VK_SUCCESS)
+        qFatal("Failed to create graphics pipeline: %d", result);
+
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mColorMaterial.pipeline);
+    if (result != VK_SUCCESS)
+        qFatal("Failed to create graphics pipeline: %d", result);
+
+    //Making a pipeline for drawing lines
+    mColorMaterial.pipeline = mPipeline1;                     // reusing most of the settings from the first pipeline
     inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
@@ -283,8 +291,17 @@ void Renderer::initResources()
     if (result != VK_SUCCESS)
         qFatal("Failed to create graphics pipeline: %d", result);
 
+    mPipeline2 = mPipeline1;
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;    // draw lines
+    rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
+    rasterization.lineWidth = 5.0f;
+    pipelineInfo.pInputAssemblyState = &inputAssembly;
+    pipelineInfo.pStages = shaderStagesC;
+    result = mDeviceFunctions->vkCreateGraphicsPipelines(logicalDevice, mPipelineCache, 1, &pipelineInfo, nullptr, &mPipeline2);
+    if (result != VK_SUCCESS)
+        qFatal("Failed to create graphics pipeline: %d", result);
 
-	// Destroying the shader modules, we won't need them anymore after the pipeline is created
+    // Destroying the shader modules, we won't need them anymore after the pipeline is created
     if (vertShaderModule)
         mDeviceFunctions->vkDestroyShaderModule(logicalDevice, vertShaderModule, nullptr);
     if (fragShaderModule)
@@ -294,8 +311,8 @@ void Renderer::initResources()
     if (mColorMaterial.fragShaderModule)
         mDeviceFunctions->vkDestroyShaderModule(logicalDevice, mColorMaterial.fragShaderModule, nullptr);
 
-	// Create the uniform buffer
-	createUniformBuffer();
+    // Create the uniform buffer
+    createUniformBuffer();
     createDescriptorPools();
     createDescriptorSet();
 
@@ -322,11 +339,110 @@ void Renderer::initSwapChainResources()
     //This sets the projection matrix - also when resizing the window:
     mCamera.perspective(45.0f, sz.width() / (float) sz.height(), 0.01f, 500.0f);
 }
+////////// BUT WAIT! There is a way... Complicated and elaborate way.
+///
+/*
+bool IsObjectInsideTheTriangle(QVector3D bary)
+{
+    if (bary.x() >= 0.0f && bary.y() >= 0.0f && bary.z() >= 0.0f &&
+        bary.x() <= 1.0f && bary.y() <= 1.0f && bary.z() <= 1.0f)
+    {
+        return true;
+    }
+    else
+    {
+        return false;
+    }
+}
 
+QVector3D BarycentricCoordinetes(QVector2D ObjPos, QVector2D p0, QVector2D p1, QVector2D p2)
+{
+    QVector2D p10 = p1-p0;
+    QVector2D p11 = p2-p0;
+    QVector2D p12 = ObjPos-p0;
+    float d00 = QVector2D::dotProduct(p10,p10);
+    float d01 = QVector2D::dotProduct(p10,p11);
+    float d11 = QVector2D::dotProduct(p11,p11);
+    float d20 = QVector2D::dotProduct(p12,p10);
+    float d21 = QVector2D::dotProduct(p12,p11);
+
+
+    float denom = 1.0f / (d00 * d11 - d01 * d01);
+    float v = (d11 * d20 - d01 * d21) * denom;
+    float w = (d00 * d21 - d01 * d20) * denom;
+    float u = 1.0f - v - w;
+
+    return QVector3D(u, v, w);
+}
+
+float getPositionInTerrain(VisualObject *Terrain, float PositionX, float PositionZ)
+{
+    QVector2D ObjPos = QVector2D(PositionX,PositionZ);
+
+    const auto& indices = Terrain->getIndices();
+    const auto& vertices = Terrain->getVertices();
+
+    //THE offset it so that the object does not clip throught the terrain.
+    float offset = 0.5f;
+
+
+    for(size_t i = 0; i+2 < indices.size(); i+=3)
+    {
+        int index0 = indices.at(i);
+        int index1 = indices.at(i+1);
+        int index2 = indices.at(i+2);
+
+
+        if (index0 >= vertices.size() || index1 >= vertices.size() || index2 >= vertices.size())
+        {
+            continue; // skip this triangle
+        }
+
+        Vertex V0 = vertices[index0];
+        Vertex V1 = vertices[index1];
+        Vertex V2 = vertices[index2];
+
+
+
+        QVector2D a(V0.x, V0.z);
+        QVector2D b(V1.x, V1.z);
+        QVector2D c(V2.x, V2.z);
+
+        // qDebug() << "V0.y:" << V0.y << "V1.y:" << V1.y << "V2.y:" << V2.y;
+
+        QVector3D bary = BarycentricCoordinetes(ObjPos,a,b,c);
+
+
+        //qDebug() << bary.x() + bary.y() + bary.z() << " should be 1";
+
+        if (IsObjectInsideTheTriangle(bary))
+        {
+            float height = (bary.x() * V0.y) + (bary.y() * V1.y) + (bary.z() * V2.y);
+            return height + offset;
+
+        }
+
+
+
+    }
+
+    return -1.0f;
+}
+
+
+///////So give it a try.
+///
+void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
+{
+    float terrain_height = getPositionInTerrain(Heightmap, Object->getPosition().x(), Object->getPosition().z());
+    Object->setPositionbyVector({Object->getPosition().x(), terrain_height, Object->getPosition().z()});
+}
+///
+*/
 void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
 {
     float my_x = Object->getPosition().x();
-    float my_y = Object->getPosition().y();
+    //float my_y = Object->getPosition().y();
     float my_z = Object->getPosition().z();
 
     for (size_t i = 0; i < Heightmap->getIndicesSize(); i += 3)
@@ -348,20 +464,23 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
         }
 
 
-        QVector3D PA=QVector3D{A.x-my_x, A.y-my_y, A.z-my_z};
-        QVector3D PB=QVector3D{B.x-my_x, B.y-my_y, B.z-my_z};
-        QVector3D PC=QVector3D{C.x-my_x, C.y-my_y, C.z-my_z};
+        QVector2D PA=QVector2D{A.x-my_x, A.z-my_z};
+        QVector2D PB=QVector2D{B.x-my_x, B.z-my_z};
+        QVector2D PC=QVector2D{C.x-my_x, C.z-my_z};
 
 
-        float lambda1 = (PB.x()*PC.z() -PB.z()*PC.x())/denominator;
-        float lambda2 = (PC.x()*PA.z() -PC.z()*PA.x())/denominator;
-        float lambda3 = (PA.x()*PB.z() -PA.z()*PB.x())/denominator;
+        float lambda1 = (PB.x()*PC.y() -PB.y()*PC.x())/denominator;
+        float lambda2 = (PC.x()*PA.y() -PC.y()*PA.x())/denominator;
+        float lambda3 = 1-lambda1-lambda2;
+
+        qDebug()<<Object->getPosition().x()<<", "<<Object->getPosition().z();
 
         if (lambda1 >= 0 && lambda2 >= 0 && lambda3 >= 0)
         {
             // Point is inside the triangle, update player's height
             float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
             qDebug("inside triangle of  terrain");
+            qDebug()<<lambda1<<", "<<lambda2<<", "<<lambda3;
 
             Object->setPositionbyVector({Object->getPosition().x(), terrain_height + 0.1f, Object->getPosition().z()});
             break;
@@ -394,14 +513,16 @@ void Renderer::startNextFrame()
     for (std::vector<VisualObject*>::iterator it=mObjects.begin(); it!=mObjects.end(); it++)
     {
         //Draw type
-		if ((*it)->getDrawType() == 0)
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
-		else
-			mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
+        if ((*it)->getDrawType() == 0)
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline1);
+        if ((*it)->getDrawType() == 2)
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mPipeline2);
+        if ((*it)->getDrawType() == 1)
+            mDeviceFunctions->vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, mColorMaterial.pipeline);
 
         QMatrix4x4 mvp = mCamera.projectionMatrix() * mCamera.viewMatrix() * (*it)->getMatrix();
         setModelMatrix((*it)->getMatrix()); //mvp);
-        
+
         // Bind the texture descriptor set
         int temp_texture = (*it)->getTexture();
         setTexture(mTextureHandle[temp_texture], commandBuffer);
