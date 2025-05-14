@@ -492,6 +492,31 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
 
 void Renderer::startNextFrame()
 {
+
+    /// HANDLING PLAYER AND ENEMY HEIGHT ADJUSTMENT - by Edvard Andreasen, dear classmate of mine
+
+    QVector3D posXZ = QVector3D(mObjects.at(1)->getPosition().x(), 0.f, mObjects.at(1)->getPosition().z()); // getting the XZ coordinates of the player
+    QVector3D enemyPosXZ = QVector3D(mObjects.at(6)->getPosition().x(), 0.f, mObjects.at(6)->getPosition().z()); // getting the XZ coordinates of the enemy
+
+    for(auto obj : mObjects){
+        if(obj->getName() == "terrain")
+        {
+            HeightMap* heightMapObj = static_cast<HeightMap*>(obj);
+            if(heightMapObj)
+            {
+                // Player barycentric coordinates
+                float newY = heightMapObj->getHeightOnMap(posXZ.x(), posXZ.z(), mObjects.at(0)->getVertices());
+                float deltaY = newY - mObjects.at(1)->getPosition().y();
+                mObjects.at(1)->move(0.f, deltaY+0.5f, 0.f);
+
+                // Enemy barycentric coordinates
+                float enemyNewY = heightMapObj->getHeightOnMap(enemyPosXZ.x(), enemyPosXZ.z(), mObjects.at(0)->getVertices());
+                float enemyDeltaY = enemyNewY - mObjects.at(6)->getPosition().y();
+                mObjects.at(6)->move(0.f, enemyDeltaY+0.5f, 0.f);
+            }
+        }
+    }
+    ///
     //Handeling input from keyboard and mouse is done in VulkanWindow
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
