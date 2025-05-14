@@ -13,6 +13,7 @@ void VisualObject::move(float x, float y, float z)
     mPosition+=add;
 }
 
+
 void VisualObject::scale(float s)
 {
     mMatrix.scale(s);

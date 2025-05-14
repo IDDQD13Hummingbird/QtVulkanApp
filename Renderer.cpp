@@ -46,7 +46,11 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.at(6)->setName("NPC");
     mObjects.at(6)->pickTexture(3);
     mObjects.at(6)->move(2, -1, 1);
+
+
+    mObjects.at(0)->move(0, 0, 0);
     static_cast<HeightMap*>(mObjects.at(0))->makeTerrain(assetPath + "Heightmap.jpg");
+
 
     // **************************************
     // Objects in optional map
@@ -359,8 +363,7 @@ void Renderer::UpdatePosition(VisualObject* Object,  VisualObject* Heightmap)
             float terrain_height=lambda1 * A.y + lambda2 * B.y + lambda3 * C.y ;
             qDebug("inside triangle of  terrain");
 
-            Object->setPosition(Object->getPosition().x(), terrain_height+0.1f, Object->getPosition().z());
-            Object->move(Object->getPosition().x(), terrain_height+0.1f, Object->getPosition().z());
+            Object->setPositionbyVector({Object->getPosition().x(), terrain_height + 0.1f, Object->getPosition().z()});
             break;
         }
         else{
