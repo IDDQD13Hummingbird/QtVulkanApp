@@ -36,7 +36,9 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     // Dag 030225
     mObjects.at(0)->setName("terrain");
     mObjects.at(1)->setName("Player");
-    mObjects.at(1)->move(10, -1, 10);
+    mObjects.at(1)->move(5, -1, 5);
+    mObjects.at(1)->setVariable(0, 1);
+
     mObjects.at(1)->pickTexture(2);
     mObjects.at(2)->setName("tri");
     mObjects.at(3)->setName("quad");
@@ -505,9 +507,11 @@ void Renderer::startNextFrame()
             if(heightMapObj)
             {
                 // Player barycentric coordinates
+                if(mObjects.at(1)->getVariable(0)>0){
                 float newY = heightMapObj->getHeightOnMap(posXZ.x(), posXZ.z(), mObjects.at(0)->getVertices());
                 float deltaY = newY - mObjects.at(1)->getPosition().y();
                 mObjects.at(1)->move(0.f, deltaY+0.5f, 0.f);
+                }
 
                 // Enemy barycentric coordinates
                 float enemyNewY = heightMapObj->getHeightOnMap(enemyPosXZ.x(), enemyPosXZ.z(), mObjects.at(0)->getVertices());
@@ -594,18 +598,44 @@ void Renderer::startNextFrame()
         if(mObjects.at(i)->getName()=="NPC"){
             if(mObjects.at(1)->isWithinRange(mObjects.at(i)->getPosition(), 3.0f)){
                 mObjects.at(i)->pickTexture(2);
-                mObjects.at(i)->setPositionbyVector(mObjects.at(i)->followTarget(mObjects.at(1)->getPosition(), local_t));
-                if(mObjects.at(1)->isColliding(mObjects.at(i)->getPosition(), 3.0f)){local_t += mObjects.at(i)->enemy_speed;}
-                else{local_t=0;}
+
+                mObjects.at(i)->enemy_speed=0.25;
+                //mObjects.at(i)->setPositionbyVector(mObjects.at(i)->followTarget(mObjects.at(1)->getPosition(), local_t));
+                // Sounded more epic than it was to actually implement. - Harpy
+
+                if(mObjects.at(1)->getPosition().x()-mObjects.at(i)->getPosition().x()>0){
+                    mObjects.at(i)->move(mObjects.at(i)->enemy_speed, 0, 0);
+                    qDebug()<<"a";
+                }
+                if(mObjects.at(1)->getPosition().x()-mObjects.at(i)->getPosition().x()<0){
+                    mObjects.at(i)->move(-(mObjects.at(i)->enemy_speed), 0, 0);
+                    qDebug()<<"b";
+                }
+                if(mObjects.at(1)->getPosition().z()-mObjects.at(i)->getPosition().z()>0){
+                    mObjects.at(i)->move( 0, 0, mObjects.at(i)->enemy_speed);
+                    qDebug()<<"c";
+                }
+                if(mObjects.at(1)->getPosition().z()-mObjects.at(i)->getPosition().z()<0){
+                    mObjects.at(i)->move(0, 0, -(mObjects.at(i)->enemy_speed));
+                    qDebug()<<"d";
+                }
+
                 //qDebug()<<local_t;
 
             }
             else{
                 local_t = 0;
+                mObjects.at(i)->enemy_speed=0.025;
                 mObjects.at(i)->pickTexture(3);
                 QVector3D path = mObjects.at(i)->evaluateBezier(a, b, c, d, mObjects.at(0)->deltaTime);
                 QVector2D follow = {path.x(), path.z()};
                 mObjects.at(i)->setPositionby2DVector(follow);
+            }
+
+            if(mObjects.at(1)->isColliding(mObjects.at(i)->getPosition(), mObjects.at(i)->getRadius())){
+                qDebug()<<"Get rotated idiot";
+                mObjects.at(1)->setVariable(0, -1);
+                mObjects.at(1)->move(0, -10, 0);
             }
         }
 

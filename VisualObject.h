@@ -52,8 +52,11 @@ public:
     QVector3D evaluateBezier(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
     void moveBeizerPath(QVector3D a, QVector3D b, QVector3D c, QVector3D d, float t);
     void setPositionby2DVector(QVector2D &newPosition);
-
     QVector3D followTarget(QVector3D target, float time);
+
+
+    int getVariable(int i){ return mVariables[i];}
+    void setVariable(int i, int var){ mVariables[i]=var;}
 
 protected:
     std::vector<Vertex> mVertices;
@@ -67,6 +70,17 @@ protected:
 
 
     float mRadius = 0.25;
+
+    /// This unethical thing - free personal variables that can be inherited by all visual objects for stuff like controlling patrol, coin collection, player dying, and whatever else I come up with.
+    int mVariables[6];
+    enum free_variables{
+        lives    = 0,
+        speed    = 1,
+        coins    = 2,
+        location = 3,
+        patroul  = 4,
+        mode     = 5
+    };
 
     int drawType{ 0 }; // 0 = fill, 1 = line
     enum drawType {
