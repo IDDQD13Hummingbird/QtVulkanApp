@@ -39,8 +39,20 @@ int main(int argc, char *argv[])
     if (!inst.create())
         qFatal("Failed to create Vulkan instance: %d", inst.errorCode());
 
+
+
+
     //VulkanWindow is the Qt window for our Vulkan Renderer
     VulkanWindow *vulkanWindow = new VulkanWindow;
+
+    //set the graphic card to RTX on my machine
+    //VkPhysicalDeviceType(2);
+    vulkanWindow->setPhysicalDeviceIndex(2);
+
+    //It needs the Vulkan instance
+    vulkanWindow->setVulkanInstance(&inst);
+
+
     //It needs the Vulkan instance
     vulkanWindow->setVulkanInstance(&inst);
 

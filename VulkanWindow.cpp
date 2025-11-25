@@ -241,3 +241,4 @@ void VulkanWindow::handleInput()
             mCamera->updateHeigth(-mCameraSpeed);
     }
 }
+

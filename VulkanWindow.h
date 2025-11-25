@@ -41,6 +41,7 @@ protected:
     VisualObject* mSelectedObject{ nullptr };
     int mIndex{0};
 
+
 private:
     void setCameraSpeed(float value);
     Input mInput;
