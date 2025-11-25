@@ -8,6 +8,7 @@
 #include "VisualObject.h"
 #include "Utilities.h"
 
+
 class Renderer : public QVulkanWindowRenderer
 {
 public:
@@ -37,6 +38,9 @@ public:
 
     std::vector<VisualObject*>& getObjects() { return mObjects; }
     std::unordered_map<std::string, VisualObject*>& getMap() { return mMap; }
+
+    void pickPhysicalDevice();
+
 
 protected:
 

@@ -25,19 +25,36 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
             }
         }
     }
-
-    mObjects.push_back(new Triangle());
-    mObjects.push_back((new TriangleSurface()));
     mObjects.push_back((new WorldAxis()));
-	mObjects.push_back(new HeightMap());
-    mObjects.push_back(new ObjMesh(assetPath + "suzanne.obj"));
+    mObjects.at(0)->setName("axis");
+
+    //mObjects.push_back(new TriangleSurface);
+    //mObjects.at(1)->setName("terrain");
+    //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
+    //static_cast<HeightMap*>(mObjects.at(1))->makeTerrain(assetPath + "export_heightmap_fixed.txt");
+
+    //auto terrain = new TriangleSurface(assetPath + "tiny_heightmap.txt");
+    //terrain->setName("terrain");
+    //mObjects.push_back(terrain);
+    //mObjects.at(1)->setPosition(-308800, -168.62, -6500523.08);
+
+    auto terrain = new TriangleSurface(assetPath + "export_heightmap_fixed.txt");
+    terrain->setName("terrain");
+    mObjects.push_back(terrain);
+    mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
+
+
+
+    //mObjects.push_back(new Triangle());
+    //mObjects.push_back((new TriangleSurface()));
+    //mObjects.push_back(new HeightMap());
+    //mObjects.push_back(new ObjMesh(assetPath + "suzanne.obj"));
     // Dag 030225
-    mObjects.at(0)->setName("tri");
-    mObjects.at(1)->setName("quad");
-    mObjects.at(2)->setName("axis");
-	mObjects.at(3)->setName("terrain");
-    mObjects.at(4)->setName("suzanne");
-    static_cast<HeightMap*>(mObjects.at(3))->makeTerrain(assetPath + "Heightmap.jpg");
+    //mObjects.at(0)->setName("tri");
+    //mObjects.at(1)->setName("quad");
+    //mObjects.at(1)->setName("terrain");
+    //mObjects.at(2)->setName("suzanne");
+    //static_cast<HeightMap*>(mObjects.at(1))->makeTerrain(assetPath + "heightmap.png");
 
     // **************************************
     // Objects in optional map
@@ -53,6 +70,9 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 }
 
 //Automatically called by Qt on Renderer startup
+
+
+
 void Renderer::initResources()
 {
     qDebug("\n ***************************** initResources ******************************************* \n");
@@ -64,7 +84,7 @@ void Renderer::initResources()
     uint32_t graphicsQueueFamilyIndex = mWindow->graphicsQueueFamilyIndex();
     mDeviceFunctions->vkGetDeviceQueue(logicalDevice, graphicsQueueFamilyIndex, 0, &mGraphicsQueue);
 
-    // const int concurrentFrameCount = mWindow->concurrentFrameCount(); // 2 on Oles Machine
+    //const int concurrentFrameCount = mWindow->concurrentFrameCount(); // 2 on Oles Machine
     const VkPhysicalDeviceLimits *pdevLimits = &mWindow->physicalDeviceProperties()->limits;
     const VkDeviceSize uniAlign = pdevLimits->minUniformBufferOffsetAlignment;
     qDebug("Uniform buffer offset alignment is %u", (uint)uniAlign); //64 on Oles machine
@@ -284,7 +304,7 @@ void Renderer::initResources()
     // Create the texture sampler
     createTextureSampler();
 
-    mTextureHandle = createTexture((assetPath + "Hund.bmp")); //Heightmap.jpg HundA.bmp
+    mTextureHandle = createTexture((assetPath + "heightmap.png")); //Heightmap.jpg HundA.bmp Hund.bmp
     //mTextureHandle = createTexture((assetPath + "green-grass-texture.jpg").c_str());
 
     // getVulkanHWInfo(); // if you want to get info about the Vulkan hardware
@@ -350,7 +370,7 @@ void Renderer::startNextFrame()
     mDeviceFunctions->vkCmdEndRenderPass(commandBuffer);
 
     //Hardcoded!!!
-    mObjects.at(1)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
+    //mObjects.at(1)->rotate(1.0f, 0.0f, 0.0f, 1.0f);
     
     mWindow->frameReady();
     mWindow->requestUpdate(); // render continuously, throttled by the presentation rate
