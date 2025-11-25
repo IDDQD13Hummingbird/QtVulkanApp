@@ -19,11 +19,53 @@ void HeightMap::makeTerrain(std::string heightMapImage)
 	makeTerrain(pixelData, mWidth, mHeight);
 	stbi_image_free(pixelData);
 }
-
 //Function that makes a terrain grid from a heightmap, using the values in the heightmap as height.
 //This function will crash if the width and height of the heightmap is not set correct!
 //The size of the textureData array is widthIn * heightIn.
 // The function is not tested in this codebase, and is provided as an example.
+
+void HeightMap::calculateHeightMapNormals()
+{
+    std::vector<QVector3D> NormalsSum(mVertices.size(), QVector3D(0.f, 0.f, 0.f));
+
+    for (size_t i = 0; i + 2 < mIndices.size(); i += 3)
+    {
+        uint32_t i0 = mIndices[i];
+        uint32_t i1 = mIndices[i + 1];
+        uint32_t i2 = mIndices[i + 2];
+
+        const Vertex &v0 = mVertices[i0];
+        const Vertex &v1 = mVertices[i1];
+        const Vertex &v2 = mVertices[i2];
+
+        QVector3D p0(v0.x, v0.y, v0.z);
+        QVector3D p1(v1.x, v1.y, v1.z);
+        QVector3D p2(v2.x, v2.y, v2.z);
+
+        QVector3D e1 = p1 - p0;
+        QVector3D e2 = p2 - p0;
+
+        QVector3D NormalFace = QVector3D::crossProduct(e1, e2);
+        if (!NormalFace.isNull())
+            NormalFace.normalize();
+
+        NormalsSum[i0] += NormalFace;
+        NormalsSum[i1] += NormalFace;
+        NormalsSum[i2] += NormalFace;
+    }
+
+    for (size_t i = 0; i < mVertices.size(); ++i)
+    {
+        QVector3D n = NormalsSum[i];
+        if (!n.isNull())
+            n.normalize();
+        mVertices[i].r = n.x();
+        mVertices[i].g = n.y();
+        mVertices[i].b = n.z();
+    }
+}
+
+
 void HeightMap::makeTerrain(unsigned char* textureData, int widthIn, int heightIn)
 {
     //Default normal pointing straight up - should be calculated correctly for lights to work!!!
@@ -93,6 +135,7 @@ void HeightMap::makeTerrain(unsigned char* textureData, int widthIn, int heightI
     }
 
 	//Calculating the normals for the mesh
-    //Function not made yet:
-    //calculateHeighMapNormals();
+    calculateHeightMapNormals();
 }
+
+

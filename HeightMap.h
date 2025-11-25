@@ -13,6 +13,8 @@ public:
 
     void makeTerrain(unsigned char* textureData, int width, int height);
 
+    void calculateHeightMapNormals();
+
 private:
 	int mWidth{ 0 };
 	int mHeight{ 0 };

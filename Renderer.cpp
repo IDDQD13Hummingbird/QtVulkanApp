@@ -304,7 +304,7 @@ void Renderer::initResources()
     // Create the texture sampler
     createTextureSampler();
 
-    mTextureHandle = createTexture((assetPath + "heightmap.png")); //Heightmap.jpg HundA.bmp Hund.bmp
+    //mTextureHandle = createTexture((assetPath + "heightmap.png")); //Heightmap.jpg HundA.bmp Hund.bmp
     //mTextureHandle = createTexture((assetPath + "green-grass-texture.jpg").c_str());
 
     // getVulkanHWInfo(); // if you want to get info about the Vulkan hardware
