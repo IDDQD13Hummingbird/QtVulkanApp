@@ -45,16 +45,12 @@ int main(int argc, char *argv[])
     //VulkanWindow is the Qt window for our Vulkan Renderer
     VulkanWindow *vulkanWindow = new VulkanWindow;
 
+    //It needs the Vulkan instance
+    vulkanWindow->setVulkanInstance(&inst);
     //set the graphic card to RTX on my machine
+
     //VkPhysicalDeviceType(2);
     vulkanWindow->setPhysicalDeviceIndex(2);
-
-    //It needs the Vulkan instance
-    vulkanWindow->setVulkanInstance(&inst);
-
-
-    //It needs the Vulkan instance
-    vulkanWindow->setVulkanInstance(&inst);
 
     //Main window of our program, that takes our VulkanWindow and logger as input
     MainWindow mainWindow(vulkanWindow, messageLogWidget.data());

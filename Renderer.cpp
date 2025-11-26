@@ -38,10 +38,11 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     //mObjects.push_back(terrain);
     //mObjects.at(1)->setPosition(-308800, -168.62, -6500523.08);
 
-    auto terrain = new TriangleSurface(assetPath + "export_heightmap_fixed.txt");
+    auto terrain = new TriangleSurface(assetPath + "test2.txt");
     terrain->setName("terrain");
     mObjects.push_back(terrain);
-    mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
+    mObjects.at(1)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
+    //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
 
 
 
