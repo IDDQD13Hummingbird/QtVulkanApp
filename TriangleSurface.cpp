@@ -90,6 +90,142 @@ void TriangleSurface::applyGradient()
     }
 }
 
+
+
+void TriangleSurface::triangulateDelaunay(){
+    std::vector<point> pts;
+    pts.reserve(mVertices.size());
+
+    float minX = std::numeric_limits<float>::max();
+    float maxX = std::numeric_limits<float>::lowest();
+    float minZ = std::numeric_limits<float>::max();
+    float maxZ = std::numeric_limits<float>::lowest();
+
+    for (int i = 0; i < static_cast<int>(mVertices.size()); ++i)
+    {
+        const auto& v = mVertices[i];
+        point p { v.x, v.z, i };
+        pts.push_back(p);
+
+        minX = std::min(minX, p.x);
+        maxX = std::max(maxX, p.x);
+        minZ = std::min(minZ, p.z);
+        maxZ = std::max(maxZ, p.z);
+    }
+
+    float dx = maxX - minX;
+    float dz = maxZ - minZ;
+    float deltaMax = std::max(dx, dz);
+    float midX = (minX + maxX) * 0.5f;
+    float midZ = (minZ + maxZ) * 0.5f;
+
+    int super0 = static_cast<int>(pts.size());
+    int super1 = static_cast<int>(pts.size()) + 1;
+    int super2 = static_cast<int>(pts.size()) + 2;
+
+    pts.push_back({ midX - 2 * deltaMax, midZ - deltaMax, -1 });
+    pts.push_back({ midX,                 midZ + 2 * deltaMax, -1 });
+    pts.push_back({ midX + 2 * deltaMax, midZ - deltaMax, -1 });
+
+    std::vector<triangle> triangles;
+    triangles.push_back({ { super0, super1, super2 } });
+
+    for (int pi = 0; pi < super0; ++pi)
+    {
+        const auto& p = pts[pi];
+
+        // Find bad triangles
+        std::vector<int> badTriangles;
+        for (int ti = 0; ti < static_cast<int>(triangles.size()); ++ti)
+        {
+            if (point_in_range(p, triangles[ti], pts))
+            {
+                badTriangles.push_back(ti);
+            }
+        }
+
+        // Find edges around bad triangles
+        std::vector<edge> edges;
+        for (int idx : badTriangles)
+        {
+            const auto& t = triangles[idx];
+
+            edge e0{ t.v[0], t.v[1] };
+            edge e1{ t.v[1], t.v[2] };
+            edge e2{ t.v[2], t.v[0] };
+
+            edges.push_back(e0);
+            edges.push_back(e1);
+            edges.push_back(e2);
+        }
+
+        // Note down bad triangles
+        std::vector<bool> removed(triangles.size(), false);
+        for (int idx : badTriangles)
+            removed[idx] = true;
+
+        // Remove duplicate edges (edges shared by two bad triangles)
+        std::vector<edge> boundary;
+        for (int i = 0; i < static_cast<int>(edges.size()); ++i)
+        {
+            bool shared = false;
+            for (int j = 0; j < static_cast<int>(edges.size()); ++j)
+            {
+                if (i == j) continue;
+                if (edges[i].a == edges[j].b &&
+                    edges[i].b == edges[j].a)
+                {
+                    shared = true;
+                    break;
+                }
+            }
+            if (!shared)
+                boundary.push_back(edges[i]);
+        }
+
+        // Remove bad triangles from the list
+        std::vector<triangle> newTriangles;
+        newTriangles.reserve(triangles.size());
+        for (int i = 0; i < static_cast<int>(triangles.size()); ++i)
+        {
+            if (!removed[i])
+                newTriangles.push_back(triangles[i]);
+        }
+        triangles.swap(newTriangles);
+
+        // Re-triangulation
+        for (const auto& e : boundary)
+        {
+            triangle nt;
+            nt.v[0] = e.a;
+            nt.v[1] = e.b;
+            nt.v[2] = pi;
+            triangles.push_back(nt);
+        }
+    }
+
+    std::vector<uint32_t> indices;
+    indices.reserve(triangles.size() * 3);
+
+    for (const auto& t : triangles)
+    {
+        if (t.v[0] >= super0 || t.v[1] >= super0 || t.v[2] >= super0)
+            continue;
+
+        //Remapping the indexes
+        int i0 = pts[t.v[0]].index;
+        int i1 = pts[t.v[1]].index;
+        int i2 = pts[t.v[2]].index;
+
+        indices.push_back(static_cast<uint32_t>(i0));
+        indices.push_back(static_cast<uint32_t>(i1));
+        indices.push_back(static_cast<uint32_t>(i2));
+    }
+
+    mIndices = std::move(indices);
+}
+
+
 TriangleSurface::TriangleSurface(const std::string &filename)
 {
     std::ifstream inn(filename);
@@ -114,4 +250,6 @@ TriangleSurface::TriangleSurface(const std::string &filename)
 
     applyGradient();
     calculateHeightMapNormals();
+    triangulateDelaunay();
 }
+
