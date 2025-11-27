@@ -239,8 +239,8 @@ void TriangleSurface::triangulateDelaunay()
     std::vector<point> pts;
     pts.reserve(mVertices.size());
 
-    float minX = 1e9, maxX = -1e9;
-    float minZ = 1e9, maxZ = -1e9;
+    float minX = 1000000000, maxX = -1000000000;
+    float minZ = 1000000000, maxZ = -1000000000;
 
     for (int i = 0; i < mVertices.size(); ++i)
     {
@@ -263,6 +263,22 @@ void TriangleSurface::triangulateDelaunay()
 
     float midX = 0.5f * (minX + maxX);
     float midZ = 0.5f * (minZ + maxZ);
+
+    float scaleX = 1.0f / (maxX - minX);
+    float scaleZ = 1.0f / (maxZ - minZ);
+
+    // Temporary storage for triangulation coordinates
+    pts.reserve(mVertices.size());
+
+    for (int i = 0; i < mVertices.size(); ++i)
+    {
+        const auto& v = mVertices[i];
+        float nx = (v.x - minX) * scaleX;
+        float nz = (v.z - minZ) * scaleZ;
+        // both clamped to [0,1]
+        pts.push_back({nx, nz, i});
+    }
+
 
     pts.push_back({midX - 2 * delta, midZ - delta, -1});
     pts.push_back({midX,           midZ + 2 * delta, -1});
