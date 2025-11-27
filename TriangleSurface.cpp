@@ -27,6 +27,12 @@ TriangleSurface::TriangleSurface() : VisualObject()
     mMatrix.translate(0.5f, 0.1f, 0.1f);
 }
 
+// Delaunay triangulation of scattered terrain points ahead.
+// Algorithm: incremental insertion (Bowyer–Watson–style) in 2D.
+// Based on:
+//  - J.R. Shewchuk, "Lecture Notes on Delaunay Mesh Generation", 1999.
+//  - Course textbook, chapter 11.
+
 
 void TriangleSurface::calculateHeightMapNormals()
 {
@@ -90,7 +96,7 @@ void TriangleSurface::applyGradient()
     }
 }
 
-
+/*
 
 void TriangleSurface::triangulateDelaunay(){
     std::vector<point> pts;
@@ -224,6 +230,98 @@ void TriangleSurface::triangulateDelaunay(){
 
     mIndices = std::move(indices);
 }
+*/
+
+void TriangleSurface::triangulateDelaunay()
+{
+{
+    // Convert vertices to points (x,z)
+    std::vector<point> pts;
+    pts.reserve(mVertices.size());
+
+    float minX = 1e9, maxX = -1e9;
+    float minZ = 1e9, maxZ = -1e9;
+
+    for (int i = 0; i < mVertices.size(); ++i)
+    {
+        const auto& v = mVertices[i];
+        pts.push_back({v.x, v.z, i});
+
+        minX = std::min(minX, v.x);
+        maxX = std::max(maxX, v.x);
+        minZ = std::min(minZ, v.z);
+        maxZ = std::max(maxZ, v.z);
+    }
+
+    float dx = maxX - minX;
+    float dz = maxZ - minZ;
+    float delta = std::max(dx, dz);
+
+    int super0 = pts.size();
+    int super1 = pts.size() + 1;
+    int super2 = pts.size() + 2;
+
+    float midX = 0.5f * (minX + maxX);
+    float midZ = 0.5f * (minZ + maxZ);
+
+    pts.push_back({midX - 2 * delta, midZ - delta, -1});
+    pts.push_back({midX,           midZ + 2 * delta, -1});
+    pts.push_back({midX + 2 * delta, midZ - delta, -1});
+
+    std::vector<triangle> tri;
+    tri.push_back({super0, super1, super2});
+
+    // INSERT POINTS
+    for (int pi = 0; pi < super0; ++pi)
+    {
+        const point& p = pts[pi];
+
+        std::vector<int> bad;
+        for (int i = 0; i < tri.size(); ++i)
+        {
+            if (point_in_range(p, tri[i], pts))
+                bad.push_back(i);
+        }
+
+        // Collect boundary edges
+        std::vector<edge> edges;
+        for (int i : bad)
+        {
+            triangle& t = tri[i];
+            edges.push_back({ t.v[0], t.v[1] });
+            edges.push_back({ t.v[1], t.v[2] });
+            edges.push_back({ t.v[2], t.v[0] });
+        }
+
+        removeDuplicates(edges);
+
+        // Remove bad triangles
+        std::vector<triangle> result;
+        for (int i = 0; i < tri.size(); ++i)
+        {
+            if (std::find(bad.begin(), bad.end(), i) == bad.end())
+                result.push_back(tri[i]);
+        }
+        tri.swap(result);
+
+        // Create new triangles using boundary edges
+        for (auto& e : edges)
+            tri.push_back({ e.a, e.b, pi });
+    }
+
+    // OUTPUT INDEX BUFFER
+    mIndices.clear();
+    for (const auto& t : tri)
+    {
+        if (t.v[0] >= super0 || t.v[1] >= super0 || t.v[2] >= super0)
+            continue;
+
+        mIndices.push_back(pts[t.v[0]].index);
+        mIndices.push_back(pts[t.v[1]].index);
+        mIndices.push_back(pts[t.v[2]].index);
+    }
+    }
+};
 
 
 TriangleSurface::TriangleSurface(const std::string &filename)
