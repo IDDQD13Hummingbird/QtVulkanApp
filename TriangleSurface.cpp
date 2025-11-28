@@ -65,6 +65,10 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
     for (uint32_t i = 0; i < mVertices.size(); ++i)
         mIndices.push_back(i);
     */
+
+    // First we triangulate, then we recalculate normals, then we shade
+    // This order is very important, or the code draws nothing
+
     triangulateDelaunay();
 
     calculateHeightMapNormals();
@@ -89,11 +93,14 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
 void TriangleSurface::calculateHeightMapNormals()
 {
     // Check if code can be applied at all:
-    if (mVertices.empty() || mIndices.empty())
+    if (mVertices.empty() || mIndices.empty()){
         qDebug() << "Normals failed";
         return;
+    }
 
     std::vector<QVector3D> NormalsSum(mVertices.size(), QVector3D(0.f, 0.f, 0.f));
+    // Actually getting mNormals to pass information
+    mNormals.assign(mVertices.size(), QVector3D(0,0,0));
 
     for (size_t i = 0; i + 2 < mIndices.size(); i += 3)
     {
@@ -166,8 +173,9 @@ void TriangleSurface::calculateHeightMapNormals()
 
     for (QVector3D &n : mNormals)
     {
-        if (!n.isNull())
-            n.normalize();
+        if (!n.isNull()) { n.normalize();}
+        else {n = QVector3D(0,1,0);};
+
     }
 
 }
@@ -176,9 +184,10 @@ void TriangleSurface::calculateHeightMapNormals()
 
 void TriangleSurface::applyGradient()
 {
-    if (mVertices.empty())
-    qDebug() << "Gradient failed";
+    if (mVertices.empty()){
+        qDebug() << "Gradient failed";
         return;
+    }
 
     float minY = mVertices[0].y;
     float maxY = mVertices[0].y;
@@ -198,8 +207,11 @@ void TriangleSurface::applyGradient()
         // Our limits : 0.0f - 1.0f
         float t = (v.y - minY) / range;
 
-        if (t < 0.0f) t = 0.0f;
-        if (t > 1.0f) t = 1.0f;
+        // if (t < 0.0f) t = 0.0f;
+        // if (t > 1.0f) t = 1.0f;
+
+        // Or, more efficiently :
+        t = std::clamp(t, 0.0f, 1.0f);
 
         v.r = t;
         v.g = t;
@@ -214,7 +226,7 @@ void TriangleSurface::applyGradient()
 void TriangleSurface::triangulateDelaunay()
 {
     // my code can't run dataset this big all at once.
-    // We have to optimize and limit the scope.
+    // We have to optimize and/or limit the scope.
 const int maxN = 5000;
 
 if (static_cast<int>(mVertices.size()) > maxN)
