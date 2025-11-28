@@ -11,10 +11,10 @@ public:
     TriangleSurface();
     TriangleSurface(const std::string& filename);
     void calculateHeightMapNormals();
-    void triangulateDelaunay();
 private:
-    std::vector<QVector3D> mNormals;private:
+    std::vector<QVector3D> mNormals;
     void applyGradient();
+    void triangulateDelaunay();
     struct point
     {
         float x;
@@ -22,11 +22,12 @@ private:
         int   index;
     };
 
+    /*
     struct Triangle
     {
         int indexer[3];
         int neighbours[3];
-    }; // book proposed version; not needed. We'll use an abridged one, presented below :
+    }; // book proposed version; not needed. We'll use an abridged one, presented below : */
 
     struct triangle
     {
@@ -36,6 +37,10 @@ private:
     struct edge
     {
         int a, b;
+        bool operator==(const edge& other) const
+        {
+            return a == other.a && b == other.b;
+        }
     };
 
     bool point_in_range(const point& p, const triangle& tri, const std::vector<point>& pts) const {
@@ -54,11 +59,13 @@ private:
     float cy = c.z - p.z;
 
     float det =
-        (ax * ax + ay * ay) * (bx * cy - cx * by) -
-        (bx * bx + by * by) * (ax * cy - cx * ay) +
-        (cx * cx + cy * cy) * (ax * by - bx * ay);
+        (ax * ax + ay * ay) * (bx * cy - cx * by) - (bx * bx + by * by) * (ax * cy - cx * ay) + (cx * cx + cy * cy) * (ax * by - bx * ay);
 
-    return det > 0.0f;
+    float o = orient2d(a, b, c);
+    if (std::fabs(o) < 1e-8f)
+        return false;
+
+    return det * o > 0.0f;
     } ;
 
     void removeDuplicates(std::vector<edge>& edges) const{

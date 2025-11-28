@@ -22,6 +22,7 @@ qt_add_executable(QtVulkanApp
     stb_image.cpp
     HeightMap.h HeightMap.cpp
     ObjMesh.h ObjMesh.cpp
+    rollingball.h rollingball.cpp
 )
 # Define the shader files
 set(SHADER_FILES
