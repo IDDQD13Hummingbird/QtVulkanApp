@@ -189,33 +189,39 @@ void TriangleSurface::applyGradient()
         return;
     }
 
-    float minY = mVertices[0].y;
-    float maxY = mVertices[0].y;
+    float MinY = mVertices[0].y;
+    float MaxY = mVertices[0].y;
 
     for (const auto &v : mVertices)
     {
-        if (v.y < minY) minY = v.y;
-        if (v.y > maxY) maxY = v.y;
+        if (v.y < MinY) { MinY = v.y; };
+        if (v.y > MaxY) { MaxY = v.y; };
     }
+    qDebug() << "Max y : " << MaxY;
+    qDebug() << "Min y : " << MinY;
 
-    float range = maxY - minY;
-    if (range <= 0.0001f)
+    float range = MaxY - MinY;
+    if (range <= 0.0001f) {
         range = 1.0f;
+    }
 
     for (auto &v : mVertices)
     {
         // Our limits : 0.0f - 1.0f
-        float t = (v.y - minY) / range;
+        float grayScaleValue;
+        grayScaleValue = (v.y - MinY) / range;
+        qDebug() << "Grayscale : " << grayScaleValue;
+        //grayScaleValue = (v.y / MaxY); - did I mess up?
 
-        // if (t < 0.0f) t = 0.0f;
-        // if (t > 1.0f) t = 1.0f;
+        // In case code below doesn't work, use :
+        // if (grayscalevalue < 0.0f) grayscalevalue = 0.0f;
+        // if (grayscalevalue > 1.0f) grayscalevalue = 1.0f;
 
-        // Or, more efficiently :
-        t = std::clamp(t, 0.0f, 1.0f);
+        grayScaleValue = std::clamp(grayScaleValue, 0.0f, 1.0f);
 
-        v.r = t;
-        v.g = t;
-        v.b = t;
+        v.r = grayScaleValue;
+        v.g = grayScaleValue;
+        v.b = grayScaleValue;
     }
 
 
