@@ -38,6 +38,7 @@ TriangleSurface::TriangleSurface() : VisualObject()
 
 TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
 {
+    setDrawType(1); // for testing
     std::ifstream inn(filename);
     if (!inn.is_open())    {
         qWarning() << "Failed to load TriangleSurface, file : " << QString::fromStdString(filename);
@@ -98,8 +99,12 @@ void TriangleSurface::calculateHeightMapNormals()
         return;
     }
 
+    /*  Unsure if it works as intended, trying a different approach for now
     std::vector<QVector3D> NormalsSum(mVertices.size(), QVector3D(0.f, 0.f, 0.f));
     // Actually getting mNormals to pass information
+    mNormals.assign(mVertices.size(), QVector3D(0,0,0));
+    */
+
     mNormals.assign(mVertices.size(), QVector3D(0,0,0));
 
     for (size_t i = 0; i + 2 < mIndices.size(); i += 3)
@@ -131,10 +136,17 @@ void TriangleSurface::calculateHeightMapNormals()
         if (!NormalFace.isNull()){
             NormalFace.normalize();
         }
-
+        else { NormalFace = QVector3D(0.5,0.5,0.5);};
+        /* Temporarily commenting out to see if the new solution works better.
         NormalsSum[i0] += NormalFace;
         NormalsSum[i1] += NormalFace;
         NormalsSum[i2] += NormalFace;
+        */
+
+        mNormals[i0] += NormalFace;
+        mNormals[i1] += NormalFace;
+        mNormals[i2] += NormalFace;
+
     }
 /*      No results from this one, investigation ongoing
 
@@ -171,12 +183,14 @@ void TriangleSurface::calculateHeightMapNormals()
     }
 */
 
-    for (QVector3D &n : mNormals)
+    for (QVector3D &norm : mNormals)
     {
-        if (!n.isNull()) { n.normalize();}
-        else {n = QVector3D(0,1,0);};
+        if (!norm.isNull()) { norm.normalize();}
+        else {norm = QVector3D(0.5, 0.5, 0.5);};
 
     }
+
+    qDebug() << "Normalized. Normals size: " << mNormals.size();
 
 }
 
@@ -205,23 +219,24 @@ void TriangleSurface::applyGradient()
         range = 1.0f;
     }
 
-    for (auto &v : mVertices)
+    for (int i = 0; i < mVertices.size(); ++i)
     {
         // Our limits : 0.0f - 1.0f
         float grayScaleValue;
-        grayScaleValue = (v.y - MinY) / range;
-        qDebug() << "Grayscale : " << grayScaleValue;
-        //grayScaleValue = (v.y / MaxY); - did I mess up?
+        grayScaleValue = (mVertices[i].y - MinY) / range;
+
+        //qDebug() << "Grayscale : " << grayScaleValue; - results seemed correct?
+        //Where did I mess up?
 
         // In case code below doesn't work, use :
-        // if (grayscalevalue < 0.0f) grayscalevalue = 0.0f;
-        // if (grayscalevalue > 1.0f) grayscalevalue = 1.0f;
+        // if (grayScaleValue < 0.0f) { grayScaleValue = 0.0f;};
+        // if (grayScaleValue > 1.0f) { grayScaleValue = 1.0f;};
 
         grayScaleValue = std::clamp(grayScaleValue, 0.0f, 1.0f);
 
-        v.r = grayScaleValue;
-        v.g = grayScaleValue;
-        v.b = grayScaleValue;
+        mVertices[i].r = grayScaleValue;
+        mVertices[i].g = grayScaleValue;
+        mVertices[i].b = grayScaleValue;
     }
 
 
@@ -304,7 +319,7 @@ if (static_cast<int>(mVertices.size()) > maxN)
     std::vector<triangle> triangles;
     triangles.push_back({ super0, super1, super2 });
 
-    // 3) Incremental insertion (Bowyer–Watson)
+    // Incremental insertion (Bowyer–Watson) -
     for (int i = 0; i < super0; i++)
     {
         const point& p = pts[i];

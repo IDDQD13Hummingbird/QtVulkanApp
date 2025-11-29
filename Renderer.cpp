@@ -25,23 +25,18 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
             }
         }
     }
-    mObjects.push_back((new WorldAxis()));
-    mObjects.at(0)->setName("axis");
+    //mObjects.push_back((new WorldAxis()));
+    //mObjects.at(0)->setName("axis");      Unless I fix textureBinding for colorPipeline1, we're not using Axis anymore.
 
     //mObjects.push_back(new TriangleSurface);
     //mObjects.at(1)->setName("terrain");
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
     //static_cast<HeightMap*>(mObjects.at(1))->makeTerrain(assetPath + "export_heightmap_fixed.txt");
 
-    //auto terrain = new TriangleSurface(assetPath + "tiny_heightmap.txt");
-    //terrain->setName("terrain");
-    //mObjects.push_back(terrain);
-    //mObjects.at(1)->setPosition(-308800, -168.62, -6500523.08);
-
     auto terrain = new TriangleSurface(assetPath + "test2.txt");
     terrain->setName("terrain");
     mObjects.push_back(terrain);
-    mObjects.at(1)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
+    mObjects.at(0)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
 
 
@@ -277,7 +272,7 @@ void Renderer::initResources()
 
 	//Making a pipeline for drawing lines
 	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
     pipelineInfo.pInputAssemblyState = &inputAssembly;

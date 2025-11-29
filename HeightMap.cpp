@@ -3,7 +3,8 @@
 #include "stb_image.h"
 
 HeightMap::HeightMap()
-{ }
+{
+}
 
 void HeightMap::makeTerrain(std::string heightMapImage)
 {
