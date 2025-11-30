@@ -48,11 +48,9 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.at(2)->setPosition(5,1,5);
     mObjects.at(2)->scale(2.0f);
     mObjects.at(2)->setName("obstacle");
-
     // remembering obstacle for future use
-
     mObstacle =  mObjects.at(2);
-    mObstacleRad = 1.0f;
+    mObstacleRad = 0.2f;
 
 
     // Initializing a ball :
@@ -123,6 +121,47 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
 //Automatically called by Qt on Renderer startup
 
+
+static void resolveCollision(QVector3D& ballPosition, QVector3D& ballVelocity, float ballRadius, const QVector3D& obstacleCenter, float obstacleRadius)
+{
+    QVector3D diff = ballPosition - obstacleCenter;
+    float Distance = QVector3D::dotProduct(diff, diff);
+    float dist_real = std::sqrt(Distance);
+
+    float mindist_real = ballRadius + obstacleRadius;
+    float minDistance = (mindist_real)*(mindist_real);
+
+
+    // Distance too big = no collision
+    if (Distance >= minDistance)
+        return;
+
+    QVector3D n;
+    if (Distance > 0.0001f)
+        n = diff / dist_real;
+    else
+        n = QVector3D(0.0f, 1.0f, 0.0f);
+
+    // First, move ball to obstacle surface
+    ballPosition = obstacleCenter + n * minDistance;
+
+    // Then change velocity
+    float vN = QVector3D::dotProduct(ballVelocity, n);
+
+    // Only react if running into the obstacle
+    if (vN < 0.0f)
+    {
+        QVector3D vNormal   = vN * n;
+        QVector3D vTangent  = ballVelocity - vNormal;
+
+        const float friction = 0.9f;  // Slow down ball a bit
+
+        vTangent *= friction;
+        ballVelocity = vTangent + vNormal;
+
+        qDebug()<<"We have collided at "<< ballPosition << ", velocity : " << ballVelocity;
+    }
+}
 
 
 void Renderer::initResources()
@@ -422,6 +461,18 @@ void Renderer::startNextFrame()
     {
         mBallHandler.updatePosition(dt, terrain);
         //mBallHandler.mDirectionalDebug(mBallIndex);
+        if (mObstacle)
+        {
+            // center of obstacle in world coords
+            QMatrix4x4 M = mObstacle->getMatrix();
+            QVector3D obstacleCenter = M.column(3).toVector3D();
+
+            QVector3D& ballPos = mBallHandler.mPosition[mBallIndex];
+            QVector3D& ballVel = mBallHandler.mVelocity[mBallIndex];
+            float      ballRad = mBallHandler.mRadius[mBallIndex];
+
+            resolveCollision(ballPos, ballVel, ballRad, obstacleCenter, mObstacleRad);
+        }
     }
 
     // Update ball VisualObject transform
