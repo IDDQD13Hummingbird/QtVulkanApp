@@ -89,7 +89,7 @@ public:
     // Find nearest vertex, sample height, return Normal
     static float sampleHeightNeighbour(const TriangleSurface* terrain, const QVector3D& coordinates, QVector3D* returnNormal)
     {
-        const auto& verts   = terrain->getVertices();
+        const auto& verts = terrain->getVertices();
         const auto& normals = terrain->getNormals();
 
         // In case there's nothing to sample :
@@ -102,8 +102,14 @@ public:
             return 0.0f;
         }
 
-        float bestDistance   = 10000000.0f;
-        float bestHeight  = verts[0].y;         // y of the closest vertex
+        // Need to adjust for the actual position in engine
+
+        QMatrix4x4 M = terrain->getMatrix();
+        QVector3D t = M.column(3).toVector3D();
+        QVector3D local_coordinates = coordinates - t;
+
+        float bestDistance = 10000000.0f;
+        float bestHeight = verts[0].y;         // y of the closest vertex
         QVector3D bestNormal(0.0f, 1.0f, 0.0f); // normal of the closest vertex
 
         for (size_t i = 0; i < verts.size(); ++i)
@@ -111,8 +117,8 @@ public:
             const Vertex& v = verts[i];
 
             // distance in xz-plane from ball to vertex
-            float dx = v.x - coordinates.x();
-            float dz = v.z - coordinates.z();
+            float dx = v.x - local_coordinates.x();
+            float dz = v.z - local_coordinates.z();
             float dist = dx*dx + dz*dz;
 
             if (dist < bestDistance)
@@ -128,7 +134,7 @@ public:
         if (returnNormal)
             *returnNormal = bestNormal.normalized();
 
-        return bestHeight;
+        return bestHeight+ t.y(); //translated for the world space.
     };
 
 };

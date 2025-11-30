@@ -50,6 +50,29 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     QVector3D ballStartPos(0,0,0);
     QVector3D ballStartVel(0,0,0);
 
+    // and it would've been easy, if not for the difference in local position and file gen's perception of such.
+    // Here's how we re-adjust :
+
+    {
+        TriangleSurface* terrainObj = static_cast<TriangleSurface*>(mObjects[1]);
+        const auto& verts = terrainObj->getVertices();
+        QMatrix4x4 M = terrainObj->getMatrix();
+        QVector3D t = M.column(3).toVector3D();
+
+        if (!verts.empty())
+        {
+            const Vertex& v0 = verts[0]; // plopping it onto 0,0,0, essentially
+            // vertex in world space = local + translation
+            ballStartPos = QVector3D(
+                v0.x + t.x(),
+                v0.y + t.y() + ballrad,
+                v0.z + t.z()
+                );
+        }
+    }
+
+
+
     mBallIndex = mBallHandler.addBall(ballStartPos, ballStartVel, ballrad, ballmass);
 
     mBallObject = new ObjMesh(assetPath + "sphere.obj");
@@ -57,6 +80,10 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mBallObject->setPosition(ballStartPos.x(), ballStartPos.y(), ballStartPos.z());
 
     mObjects.push_back(mBallObject);
+
+    // To make sure I didn't mess up :
+    qDebug() << "Terrain matrix: " << terrain->getMatrix();
+    qDebug() << "\n Ball starting position: " << ballStartPos;
 
     //mObjects.push_back(new Triangle());
     //mObjects.push_back((new TriangleSurface()));
