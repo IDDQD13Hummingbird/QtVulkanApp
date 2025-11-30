@@ -70,6 +70,8 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
 
     applyGradient();
 
+    assignFriction();
+
     //Check that code actually did something :
     qDebug() << "Vertices:" << mVertices.size()
              << "Triangles:" << mIndices.size() / 3;

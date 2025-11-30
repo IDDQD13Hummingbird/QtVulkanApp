@@ -13,6 +13,7 @@ public:
     void calculateHeightMapNormals();
     const std::vector<Vertex>&    getVertices() const { return mVertices; };
     const std::vector<QVector3D>& getNormals()  const { return mNormals; };
+    const std::vector<float>& getFriction() const { return mFriction; };
 private:
     std::vector<QVector3D> mNormals;
     void applyGradient();
@@ -23,6 +24,8 @@ private:
         float z;
         int   index;
     };
+
+    std::vector<float> mFriction;
 
     /*
     struct Triangle
@@ -100,6 +103,49 @@ private:
     float orient2D(const point& a, const point& b, const point& c) const {
         return (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
     };
+
+    void assignFriction()
+    {
+        if (mVertices.empty())
+            return;
+
+        mFriction.resize(mVertices.size());
+
+        // Current plan is to split the terrain in half by z and make two halves have different friction
+        float minX = mVertices[0].z;
+        float maxX = mVertices[0].z;
+        for (const auto& v : mVertices)
+        {
+            if (v.z < minX) minX = v.z;
+            if (v.z > maxX) maxX = v.z;
+        }
+        float midX = 0.5f * (minX + maxX);
+
+        // Assign friction values
+        const float lowFriction  = 0.3f;
+        const float highFriction = 0.8f;
+
+        for (size_t i = 0; i < mVertices.size(); ++i)
+        {
+            Vertex& v = mVertices[i];
+
+            if (v.z > midX)
+            {
+                // Right half
+                mFriction[i] = highFriction;
+
+                // Make it red
+                v.r = 0.4f;
+                v.g = 0.1f;
+                v.b = 0.1f;
+            }
+            else
+            {
+                // Left half
+                mFriction[i] = lowFriction;
+            }
+        }
+    }
 
 };
 

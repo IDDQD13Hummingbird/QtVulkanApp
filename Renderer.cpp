@@ -44,8 +44,19 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
 \
 
+    mObjects.push_back(new ObjMesh(assetPath + "suzanne.obj"));
+    mObjects.at(2)->setPosition(5,1,5);
+    mObjects.at(2)->scale(2.0f);
+    mObjects.at(2)->setName("obstacle");
+
+    // remembering obstacle for future use
+
+    mObstacle =  mObjects.at(2);
+    mObstacleRad = 1.0f;
+
+
     // Initializing a ball :
-    float ballrad = 0.5f;
+    float ballrad = 0.25f;
     float ballmass = 1.0f;
     QVector3D ballStartPos(0,0,0);
     QVector3D ballStartVel(0,0,0);
@@ -71,7 +82,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
-
+    for(int i = 0; i < 10; i++){
 
     mBallIndex = mBallHandler.addBall(ballStartPos, ballStartVel, ballrad, ballmass);
 
@@ -82,8 +93,9 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back(mBallObject);
 
     // To make sure I didn't mess up :
-    qDebug() << "Terrain matrix: " << terrain->getMatrix();
+    qDebug() << "matrix: " << terrain->getMatrix();
     qDebug() << "\n Ball starting position: " << ballStartPos;
+    }
 
     //mObjects.push_back(new Triangle());
     //mObjects.push_back((new TriangleSurface()));
@@ -379,6 +391,9 @@ void Renderer::startNextFrame()
     const Input& in = mVulkanWindow->input();
     bool preLaunch = mVulkanWindow->mGamestate;
 
+    // for all 'em balls :
+    //for (int i = 0; i < 10; i++){
+
     // Before space is pressed :
     if (preLaunch && mBallIndex >= 0 && terrain)
     {
@@ -392,7 +407,9 @@ void Renderer::startNextFrame()
 
         // readjust to be on the surface
         QVector3D normal(0.0f, 1.0f, 0.0f);
-        float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal);
+        float temp1;
+        int temp2;
+        float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal, &temp1, &temp2);
         pos.setY(h + mBallHandler.mRadius[mBallIndex]);
 
         // just to be safe, set velocity to 0 again
@@ -404,6 +421,7 @@ void Renderer::startNextFrame()
     if (!preLaunch && mBallIndex >= 0 && terrain)
     {
         mBallHandler.updatePosition(dt, terrain);
+        //mBallHandler.mDirectionalDebug(mBallIndex);
     }
 
     // Update ball VisualObject transform
@@ -411,8 +429,10 @@ void Renderer::startNextFrame()
     {
         const QVector3D& pos = mBallHandler.mPosition[mBallIndex];
         mBallObject->setPosition(pos.x(), pos.y(), pos.z());
-    }
+        //qDebug()<<"Ball position : "<< pos; - very bad idea to run debug in a loop
 
+    }
+    //}
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 
 	setRenderPassParameters(commandBuffer);

@@ -44,6 +44,14 @@ public:
 
     BallHandler mBallHandler;
 
+
+    QVector3D midObstacle() const
+    {
+        return mObstacle ? mObstacle->getPosition() : QVector3D(0,0,0);
+    }
+
+    float getObstacleRad() const { return mObstacleRad; }
+
 protected:
 
     //Creates the Vulkan shader module from the precompiled shader files in .spv format
@@ -80,6 +88,7 @@ protected:
     VkPipeline mPipeline1{ VK_NULL_HANDLE };
 
     VkQueue mGraphicsQueue{ VK_NULL_HANDLE };
+
 
 private:
     friend class VulkanWindow;
@@ -130,6 +139,9 @@ private:
 
     int mBallIndex{-1};
     VisualObject* mBallObject{nullptr}; // pointer to the sphere mesh for rendering
+
+    VisualObject* mObstacle { nullptr };
+    float mObstacleRad { 0.5f };
 
 
 };
