@@ -207,9 +207,7 @@ void TriangleSurface::applyGradient()
     qDebug() << "Min y : " << MinY;
 
     float range = MaxY - MinY;
-    if (range <= 0.0001f) {
-        range = 1.0f;
-    }
+    if (range <= 0.0001f) { range = 1.0f; };
 
     for (int i = 0; i < mVertices.size(); ++i)
     {

@@ -17,6 +17,9 @@ public:
     std::vector<QVector3D> mVelocity;
     std::vector<float> mRadius;
     std::vector<float> mMass;
+    // Specifically for handling several balls :
+    std::vector<bool> isActive; // needs "true" for it to start moving
+    std::vector<float> mSpawnDelay; // seconds until it's queue time has come
 
     void mDirectionDebug(int i){
         if (mVelocity[i].x()< 0 && mVelocity[i].z()<0){qDebug()<<"Left-Down, ";}
@@ -38,18 +41,45 @@ public:
         mVelocity.push_back(velocity);
         mRadius.push_back(radius);
         mMass.push_back(mass);
+        isActive.push_back(true); // false if flow should generate immediately
+        mSpawnDelay.push_back(0.0f);
         return static_cast<int>(mPosition.size()) - 1; // ball ID
     };
 
+    // We want to reuse balls that aren't doing much.
+    // Or, at least, we want to know that balls stopped.
+    bool didBallGetStuck(int i){
+        return mVelocity[i].lengthSquared() < 0.001f;
+        qDebug()<<"Ball stuck!";
+    }
+
     void updatePosition(float dt, const TriangleSurface* terrain){
 
-        // No idea how to include it outside of the function without it failing, so it stays here.
+        size_t N = mPosition.size();
+        if (mVelocity.size() != N || mRadius.size() != N || mMass.size() != N || isActive.size() != N || mSpawnDelay.size() != N)
+        {
+            qWarning() << "BallHandler arrays are out of sync! What did you even push?";
+            return;
+        }
 
         const QVector3D gravity(0.0f, -9.81f, 0.0f);
 
         //herding balls :
         const float inContact_Distance = 0.15f;
         const float maxSupportDist = 0.5f;
+
+
+        for (size_t i = 0; i < mPosition.size(); ++i)
+        {
+
+            // Skip balls not yet spawned
+            if (!isActive[i])
+            {
+                mSpawnDelay[i] -= dt;
+                if (mSpawnDelay[i] <= 0.0f){ isActive[i] = true;}
+                else{continue;}
+
+            }
 
 
         for (size_t i = 0; i < mPosition.size(); ++i)
@@ -75,6 +105,7 @@ public:
 
             QVector3D a(0.0f, 0.0f, 0.0f);
 
+            // Make sure we don't sink
             if (onGround && mPosition[i].y() < ground_height + inContact_Distance){
                 mPosition[i].setY(ground_height);};
 
@@ -93,9 +124,9 @@ public:
                 mPosition[i].setY(ground_height);
 
                 // Decompose gravity into normal + tangent
-                float gN = QVector3D::dotProduct(gravity, normal); // should be negative
-                QVector3D g_normal  = gN * normal;
-                QVector3D g_tangent = gravity - g_normal;          // along the surface
+                float gravityNormal = QVector3D::dotProduct(gravity, normal); // should be negative
+                QVector3D g_normal  = gravityNormal * normal;
+                QVector3D g_tangent = gravity - g_normal; // along the surface
 
                 // Decompose velocity into normal + tangent
                 float vN = QVector3D::dotProduct(mVelocity[i], normal);
@@ -106,14 +137,14 @@ public:
                 if (vN < 0.0f)
                     mVelocity[i] -= v_normal;
 
-                // Friction opposite to tangent velocity
+                // Friction opposite to tangent velocity (aka along the surface)
                 QVector3D a_friction(0,0,0);
                 float speedT = v_tangent.length();
                 if (speedT > 0.0001f)
                 {
-                    QVector3D t_hat = v_tangent / speedT;
-                    float N_mag = -gN;
-                    a_friction = - my * N_mag * t_hat;
+                    QVector3D tan_dir = v_tangent / speedT;
+                    float N_mag = -gravityNormal;
+                    a_friction = - my * N_mag * tan_dir;
                 }
 
                 // Net acceleration along the surface
@@ -150,7 +181,7 @@ public:
     };
 
  };
-
+};
     // Find nearest vertex, sample height, return Normal
     static float sampleHeightNeighbour(const TriangleSurface* terrain, const QVector3D& coordinates, QVector3D* returnNormal, float* out_of_bounds, int* returnIndex)
     {
@@ -211,5 +242,12 @@ public:
         return bestHeight + offset.y(); //translated for the world space.
     };
 
+    void spawnBall(int i, const QVector3D& startPos)
+    {
+        mPosition[i] = startPos;
+        mVelocity[i] = QVector3D(0,0,0);
+        isActive[i] = false; // must wait for its spawnDelay to activate
+    }
 };
+
 #endif // BALLHANDLER_H

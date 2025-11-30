@@ -80,12 +80,17 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
         }
     }
 
-    for(int i = 0; i < 10; i++){
+
+    //And then it's showtime
+
+    for(int i = 0; i < mFluidEntityCount; i++){
 
     mBallIndex = mBallHandler.addBall(ballStartPos, ballStartVel, ballrad, ballmass);
+    mBallHandler.isActive[i] = false;
+    mBallHandler.mSpawnDelay[i] = (i * mFluidSpawnInterval);
 
     mBallObject = new ObjMesh(assetPath + "sphere.obj");
-    mBallObject->setName("ball");
+    mBallObject->setName("ball"+ std::to_string(i)); //Numerated names, wow!
     mBallObject->setPosition(ballStartPos.x(), ballStartPos.y(), ballStartPos.z());
 
     mObjects.push_back(mBallObject);
@@ -162,6 +167,7 @@ static void resolveCollision(QVector3D& ballPosition, QVector3D& ballVelocity, f
         qDebug()<<"We have collided at "<< ballPosition << ", velocity : " << ballVelocity;
     }
 }
+;
 
 
 void Renderer::initResources()
@@ -451,6 +457,8 @@ void Renderer::startNextFrame()
         float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal, &temp1, &temp2);
         pos.setY(h + mBallHandler.mRadius[mBallIndex]);
 
+        mFluidSimStartPosition = pos;
+
         // just to be safe, set velocity to 0 again
         mBallHandler.mVelocity[mBallIndex] = QVector3D(0, 0, 0);
     }
@@ -470,18 +478,33 @@ void Renderer::startNextFrame()
             QVector3D& ballPos = mBallHandler.mPosition[mBallIndex];
             QVector3D& ballVel = mBallHandler.mVelocity[mBallIndex];
             float      ballRad = mBallHandler.mRadius[mBallIndex];
-
-            resolveCollision(ballPos, ballVel, ballRad, obstacleCenter, mObstacleRad);
+            for (int i = 0; i < sizeof(mBallHandler) ; ++i){
+            resolveCollision(mBallHandler.mPosition[i], mBallHandler.mVelocity[i], mBallHandler.mRadius[i], obstacleCenter, mObstacleRad);
+            }
         }
+
+        // Now loop the balls back to the start when they run out
+
+        for (int i = 0; i < sizeof(mBallHandler); ++i)
+        {
+            if (mBallHandler.didBallGetStuck(i))
+            {
+                mBallHandler.spawnBall(i, mFluidSimStartPosition);
+                mBallHandler.mSpawnDelay[i] = i * mFluidSpawnInterval; // To make stream continuous.
+            }
+        }
+
     }
 
     // Update ball VisualObject transform
     if (mBallObject && mBallIndex >= 0)
     {
-        const QVector3D& pos = mBallHandler.mPosition[mBallIndex];
-        mBallObject->setPosition(pos.x(), pos.y(), pos.z());
+        for (int i = 0; i < sizeof(mBallObject); ++i)
+        {
+       const QVector3D& pos = mBallHandler.mPosition[i];
+        mBallObject[i].setPosition(pos.x(), pos.y(), pos.z());
         //qDebug()<<"Ball position : "<< pos; - very bad idea to run debug in a loop
-
+        }
     }
     //}
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();

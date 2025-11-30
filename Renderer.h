@@ -143,6 +143,11 @@ private:
     VisualObject* mObstacle { nullptr };
     float mObstacleRad { 0.5f };
 
+    QVector3D mFluidSimStartPosition;
+    int mFluidEntityCount = 50; // Aiming for supporting 50-200 range
+    float mFluidSpawnInterval = 0.2f; // seconds
+    float mFluidTime = 0.00f;
+
 
 };
 
