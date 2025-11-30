@@ -442,7 +442,9 @@ void Renderer::startNextFrame()
     // Before space is pressed :
     if (preLaunch && mBallIndex >= 0 && terrain)
     {
-        QVector3D& pos = mBallHandler.mPosition[mBallIndex];
+        const size_t ballCount = mBallHandler.mPosition.size();
+        for (int i = 0; i < ballCount ; ++i){
+        QVector3D& pos = mBallHandler.mPosition[i];
         //qDebug()<<"Ball x : "<< pos.x() <<", z : "<< pos.z();
 
         if (in.LEFT)  { pos.setX(pos.x() - 0.1f); qDebug()<<"Moving left";};
@@ -455,12 +457,13 @@ void Renderer::startNextFrame()
         float temp1;
         int temp2;
         float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal, &temp1, &temp2);
-        pos.setY(h + mBallHandler.mRadius[mBallIndex]);
+        pos.setY(h + mBallHandler.mRadius[i]);
 
         mFluidSimStartPosition = pos;
 
         // just to be safe, set velocity to 0 again
-        mBallHandler.mVelocity[mBallIndex] = QVector3D(0, 0, 0);
+        mBallHandler.mVelocity[i] = QVector3D(0, 0, 0);
+        }
     }
 
     // After space is pressed :
@@ -477,15 +480,17 @@ void Renderer::startNextFrame()
 
             QVector3D& ballPos = mBallHandler.mPosition[mBallIndex];
             QVector3D& ballVel = mBallHandler.mVelocity[mBallIndex];
-            float      ballRad = mBallHandler.mRadius[mBallIndex];
-            for (int i = 0; i < sizeof(mBallHandler) ; ++i){
+            float ballRad = mBallHandler.mRadius[mBallIndex];
+            const size_t ballCount = mBallHandler.mPosition.size();
+            for (int i = 0; i < ballCount ; ++i){
             resolveCollision(mBallHandler.mPosition[i], mBallHandler.mVelocity[i], mBallHandler.mRadius[i], obstacleCenter, mObstacleRad);
             }
         }
 
         // Now loop the balls back to the start when they run out
 
-        for (int i = 0; i < sizeof(mBallHandler); ++i)
+        const size_t ballCount = mBallHandler.mPosition.size(); // there should be a more elegant solution, but I also want to sleep.
+        for (int i = 0; i < ballCount; ++i)
         {
             if (mBallHandler.didBallGetStuck(i))
             {
@@ -499,9 +504,11 @@ void Renderer::startNextFrame()
     // Update ball VisualObject transform
     if (mBallObject && mBallIndex >= 0)
     {
-        for (int i = 0; i < sizeof(mBallObject); ++i)
+        const size_t ballCount = mBallHandler.mPosition.size(); // No, seriously, I should plop this into .h
+        for (int i = 0; i < ballCount; ++i)
         {
-       const QVector3D& pos = mBallHandler.mPosition[i];
+        //const QVector3D& pos = mBallHandler.mPosition[mBallIndex];
+        const QVector3D& pos = mBallHandler.mPosition[i];
         mBallObject[i].setPosition(pos.x(), pos.y(), pos.z());
         //qDebug()<<"Ball position : "<< pos; - very bad idea to run debug in a loop
         }
