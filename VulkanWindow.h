@@ -23,6 +23,10 @@ public:
     void setSelectedObject(VisualObject* object) { mSelectedObject = object; }
 
     void handleInput();
+    void adjustPosition(QKeyEvent *event);
+    bool mGamestate = true;
+    // VulkanWindow - check gamestate, if false - moveBall()
+    // If button pressed - dynamic cast move ball
 
 signals:
     void frameQueued(int colorValue);
@@ -51,6 +55,9 @@ private:
     int mMouseYlast{0};
 
     class Camera* mCamera{ nullptr };
+
+
+
 };
 
 #endif // VULKANWINDOW_H

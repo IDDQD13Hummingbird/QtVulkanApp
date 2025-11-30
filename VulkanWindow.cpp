@@ -242,3 +242,20 @@ void VulkanWindow::handleInput()
     }
 }
 
+
+void VulkanWindow::adjustPosition(QKeyEvent *event){
+    if(mGamestate){ //rolingball - mObjects.at(2)
+        if (mInput.LEFT)
+            dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move(-0.1, 0, 0);
+        if (mInput.RIGHT)
+            dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move( 0.1, 0, 0);
+        if (mInput.DOWN)
+            dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move(0, 0, -0.1);
+        if (mInput.UP)
+            dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move(0, 0,  0.1);
+
+        if (mInput.SPACE)
+            mGamestate = false; //make ball start to run, and disable ball from moving.
+    };
+};
+

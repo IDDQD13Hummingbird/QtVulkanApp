@@ -38,7 +38,7 @@ TriangleSurface::TriangleSurface() : VisualObject()
 
 TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
 {
-    setDrawType(1); // for testing
+    setDrawType(0); // for testing
     std::ifstream inn(filename);
     if (!inn.is_open())    {
         qWarning() << "Failed to load TriangleSurface, file : " << QString::fromStdString(filename);
@@ -60,12 +60,6 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
         //qDebug() << v.x << v.y << v.z;
     }
     inn.close();
-    /*  This messes up triangulation
-    mIndices.clear();
-    mIndices.reserve(mVertices.size());
-    for (uint32_t i = 0; i < mVertices.size(); ++i)
-        mIndices.push_back(i);
-    */
 
     // First we triangulate, then we recalculate normals, then we shade
     // This order is very important, or the code draws nothing
@@ -79,6 +73,7 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
     //Check that code actually did something :
     qDebug() << "Vertices:" << mVertices.size()
              << "Triangles:" << mIndices.size() / 3;
+    // Current output : 5000 vertixes, ~9000 triangles
 
 }
 
@@ -137,11 +132,6 @@ void TriangleSurface::calculateHeightMapNormals()
             NormalFace.normalize();
         }
         else { NormalFace = QVector3D(0.5,0.5,0.5);};
-        /* Temporarily commenting out to see if the new solution works better.
-        NormalsSum[i0] += NormalFace;
-        NormalsSum[i1] += NormalFace;
-        NormalsSum[i2] += NormalFace;
-        */
 
         mNormals[i0] += NormalFace;
         mNormals[i1] += NormalFace;
@@ -225,14 +215,13 @@ void TriangleSurface::applyGradient()
         float grayScaleValue;
         grayScaleValue = (mVertices[i].y - MinY) / range;
 
-        //qDebug() << "Grayscale : " << grayScaleValue; - results seemed correct?
-        //Where did I mess up?
+        //qDebug() << "Grayscale : " << grayScaleValue; - if results are in range, it's all good
 
         // In case code below doesn't work, use :
         // if (grayScaleValue < 0.0f) { grayScaleValue = 0.0f;};
         // if (grayScaleValue > 1.0f) { grayScaleValue = 1.0f;};
 
-        grayScaleValue = std::clamp(grayScaleValue, 0.0f, 1.0f);
+        grayScaleValue = std::clamp(grayScaleValue, 0.2f, 1.0f);
 
         mVertices[i].r = grayScaleValue;
         mVertices[i].g = grayScaleValue;
@@ -246,8 +235,8 @@ void TriangleSurface::applyGradient()
 
 void TriangleSurface::triangulateDelaunay()
 {
-    // my code can't run dataset this big all at once.
-    // We have to optimize and/or limit the scope.
+    // My computer can't run dataset this big all at once.
+    // Had to optimize and/or limit the scope.
 const int maxN = 5000;
 
 if (static_cast<int>(mVertices.size()) > maxN)
@@ -271,7 +260,8 @@ if (static_cast<int>(mVertices.size()) > maxN)
     if (n < 3)
         return;
 
-    // 1) Build normalized 2D point set (XZ-plane)
+    // First we build a normalized 2D point set.
+    // World axis : y - height, x z - length
     std::vector<point> pts;
     pts.reserve(n);
 
@@ -304,14 +294,14 @@ if (static_cast<int>(mVertices.size()) > maxN)
         pts.push_back(p);
     }
 
-    // 2) Supertriangle
+    // Then we build a Supertriangle
     // super0 = number of real points;
-    // supers are super-triangle vertices
+    // other supers are super-triangle vertices
     int super0 = static_cast<int>(pts.size());
     int super1 = super0 + 1;
     int super2 = super0 + 2;
 
-    // big triangle covering [0,1]x[0,1]
+    // The big triangle should be covering [0,1]x[0,1]
     pts.push_back({ -1.0f, -1.0f, -1 }); // super0
     pts.push_back({  2.0f, -1.0f, -1 }); // super1
     pts.push_back({  0.5f,  2.0f, -1 }); // super2
@@ -319,12 +309,12 @@ if (static_cast<int>(mVertices.size()) > maxN)
     std::vector<triangle> triangles;
     triangles.push_back({ super0, super1, super2 });
 
-    // Incremental insertion (Bowyer–Watson) -
+    // Then we do incremental insertion (according to Bowyer–Watson)
     for (int i = 0; i < super0; i++)
     {
         const point& p = pts[i];
 
-        // Find triangles whose circumcircle contains p
+        // Finding triangles whose circumcircle contains the point
         std::vector<int> badTris;
         for (int i = 0; i < static_cast<int>(triangles.size()); i++)
         {
@@ -332,7 +322,7 @@ if (static_cast<int>(mVertices.size()) > maxN)
                 badTris.push_back(i);
         }
 
-        // Collect boundary edges of the "hole"
+        // Collect vertixes at the edges of the "hole"
         std::vector<edge> edges;
         for (int idx : badTris)
         {
@@ -344,7 +334,7 @@ if (static_cast<int>(mVertices.size()) > maxN)
 
         removeDuplicates(edges);
 
-        // Remove bad triangles
+        // Removing bad triangles
         std::vector<triangle> newTris;
         newTris.reserve(triangles.size());
         for (int i = 0; i < static_cast<int>(triangles.size()); i++)
@@ -354,7 +344,7 @@ if (static_cast<int>(mVertices.size()) > maxN)
         }
         triangles.swap(newTris);
 
-        // Retriangulate the hole with new triangles fan around p
+        // Retriangulating the hole with new triangles looping around p
         for (const edge& e : edges)
         {
             triangle nt;
@@ -365,7 +355,7 @@ if (static_cast<int>(mVertices.size()) > maxN)
         }
     }
 
-    // 4) Build index buffer, discard any triangle using supertriangle vertices
+    // Building new index buffer, discarding any triangle within the supertriangle
     mIndices.clear();
     mIndices.reserve(triangles.size() * 3);
 

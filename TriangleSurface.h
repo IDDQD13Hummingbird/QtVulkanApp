@@ -11,6 +11,8 @@ public:
     TriangleSurface();
     TriangleSurface(const std::string& filename);
     void calculateHeightMapNormals();
+    const std::vector<Vertex>&    getVertices() const { return mVertices; };
+    const std::vector<QVector3D>& getNormals()  const { return mNormals; };
 private:
     std::vector<QVector3D> mNormals;
     void applyGradient();
@@ -61,7 +63,7 @@ private:
     float det =
         (ax * ax + ay * ay) * (bx * cy - cx * by) - (bx * bx + by * by) * (ax * cy - cx * ay) + (cx * cx + cy * cy) * (ax * by - bx * ay);
 
-    float o = orient2d(a, b, c);
+    float o = orient2D(a, b, c);
     if (std::fabs(o) < 1e-8f)
         return false;
 
@@ -95,7 +97,7 @@ private:
         edges.swap(clean);
     };
 
-    float orient2d(const point& a, const point& b, const point& c) const {
+    float orient2D(const point& a, const point& b, const point& c) const {
         return (b.x - a.x) * (c.z - a.z) - (b.z - a.z) * (c.x - a.x);
     };
 

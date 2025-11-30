@@ -9,6 +9,7 @@
 #include "HeightMap.h"
 #include "stb_image.h"
 #include "ObjMesh.h"
+#include "BallHandler.h"
 
 /*** Renderer class ***/
 Renderer::Renderer(QVulkanWindow *w, bool msaa)
@@ -25,20 +26,26 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
             }
         }
     }
-    //mObjects.push_back((new WorldAxis()));
-    //mObjects.at(0)->setName("axis");      Unless I fix textureBinding for colorPipeline1, we're not using Axis anymore.
+    mObjects.push_back((new WorldAxis()));
+    mObjects.at(0)->setName("axis");
+
 
     //mObjects.push_back(new TriangleSurface);
     //mObjects.at(1)->setName("terrain");
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
     //static_cast<HeightMap*>(mObjects.at(1))->makeTerrain(assetPath + "export_heightmap_fixed.txt");
 
-    auto terrain = new TriangleSurface(assetPath + "test2.txt");
+    //auto terrain = new TriangleSurface(assetPath + "test2.txt");
+    auto terrain = new TriangleSurface(assetPath + "DatasetV1.txt");
     terrain->setName("terrain");
     mObjects.push_back(terrain);
-    mObjects.at(0)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
+    mObjects.at(1)->setPosition(-486437.10000000003, -806.09, -7442439.84);
+    //mObjects.at(0)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
 
+    mObjects.push_back(new ObjMesh(assetPath + "sphere.obj"));
+    mObjects.at(2)->setName("ball");
+    //BallHandler::addBall();
 
 
     //mObjects.push_back(new Triangle());
@@ -160,8 +167,8 @@ void Renderer::initResources()
 
     /********************************* Create shaders *********************************/
     //Creates our actual shader modules
-    VkShaderModule vertShaderModule = createShader(QStringLiteral(":/texture_vert.spv"));
-    VkShaderModule fragShaderModule = createShader(QStringLiteral(":/texture_frag.spv"));
+    VkShaderModule vertShaderModule = createShader(QStringLiteral(":/color_vert.spv"));
+    VkShaderModule fragShaderModule = createShader(QStringLiteral(":/color_frag.spv"));
 
 	//Updated to more common way to write it:
     VkPipelineShaderStageCreateInfo vertShaderCreateInfoT{};
@@ -272,7 +279,7 @@ void Renderer::initResources()
 
 	//Making a pipeline for drawing lines
 	mColorMaterial.pipeline = mPipeline1;                       // reusing most of the settings from the first pipeline
-    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;//VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
+    inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_LINE_LIST;   // draw lines
     rasterization.polygonMode = VK_POLYGON_MODE_FILL;           // VK_POLYGON_MODE_LINE will make a wireframe; VK_POLYGON_MODE_FILL
     rasterization.lineWidth = 5.0f;
     pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -349,7 +356,7 @@ void Renderer::startNextFrame()
         setModelMatrix((*it)->getMatrix()); //mvp);
         
         // Bind the texture descriptor set
-		setTexture(mTextureHandle, commandBuffer);
+        //setTexture(mTextureHandle, commandBuffer);
         
         mDeviceFunctions->vkCmdBindVertexBuffers(commandBuffer, 0, 1, &(*it)->getVBuffer(), &vbOffset);
 		//Check if we have an index buffer - if so, use Indexed draw
