@@ -42,11 +42,21 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.at(1)->setPosition(-486437.10000000003, -806.09, -7442439.84);
     //mObjects.at(0)->setPosition(-447176.48, -731.8000000000001, -7439563.13);
     //mObjects.at(1)->setPosition(-468.25, -134.5, -1581.29);
+\
 
-    mObjects.push_back(new ObjMesh(assetPath + "sphere.obj"));
-    mObjects.at(2)->setName("ball");
-    //BallHandler::addBall();
+    // Initializing a ball :
+    float ballrad = 0.5f;
+    float ballmass = 1.0f;
+    QVector3D ballStartPos(0,0,0);
+    QVector3D ballStartVel(0,0,0);
 
+    mBallIndex = mBallHandler.addBall(ballStartPos, ballStartVel, ballrad, ballmass);
+
+    mBallObject = new ObjMesh(assetPath + "sphere.obj");
+    mBallObject->setName("ball");
+    mBallObject->setPosition(ballStartPos.x(), ballStartPos.y(), ballStartPos.z());
+
+    mObjects.push_back(mBallObject);
 
     //mObjects.push_back(new Triangle());
     //mObjects.push_back((new TriangleSurface()));
@@ -331,6 +341,50 @@ void Renderer::startNextFrame()
     //Has to be done each frame to get smooth movement
     mVulkanWindow->handleInput();
     mCamera.update();               //input can have moved the camera
+
+    // timestep!
+    const float dt = 1.0f / 60.0f;
+    //terrain pointer!
+    TriangleSurface* terrain = nullptr;
+    if (mObjects.size() > 1)
+        terrain = static_cast<TriangleSurface*>(mObjects[1]);
+
+    const Input& in = mVulkanWindow->input();
+    bool preLaunch = mVulkanWindow->mGamestate;
+
+    // Before space is pressed :
+    if (preLaunch && mBallIndex >= 0 && terrain)
+    {
+        QVector3D& pos = mBallHandler.mPosition[mBallIndex];
+        //qDebug()<<"Ball x : "<< pos.x() <<", z : "<< pos.z();
+
+        if (in.LEFT)  { pos.setX(pos.x() - 0.1f); qDebug()<<"Moving left";};
+        if (in.RIGHT) { pos.setX(pos.x() + 0.1f); qDebug()<<"Moving right";};
+        if (in.DOWN)  { pos.setZ(pos.z() - 0.1f); qDebug()<<"Moving down";};
+        if (in.UP)    { pos.setZ(pos.z() + 0.1f); qDebug()<<"Moving up";};
+
+        // readjust to be on the surface
+        QVector3D normal(0.0f, 1.0f, 0.0f);
+        float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal);
+        pos.setY(h + mBallHandler.mRadius[mBallIndex]);
+
+        // just to be safe, set velocity to 0 again
+        mBallHandler.mVelocity[mBallIndex] = QVector3D(0, 0, 0);
+    }
+
+    // After space is pressed :
+
+    if (!preLaunch && mBallIndex >= 0 && terrain)
+    {
+        mBallHandler.updatePosition(dt, terrain);
+    }
+
+    // Update ball VisualObject transform
+    if (mBallObject && mBallIndex >= 0)
+    {
+        const QVector3D& pos = mBallHandler.mPosition[mBallIndex];
+        mBallObject->setPosition(pos.x(), pos.y(), pos.z());
+    }
 
     VkCommandBuffer commandBuffer = mWindow->currentCommandBuffer();
 

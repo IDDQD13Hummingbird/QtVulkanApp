@@ -7,6 +7,7 @@
 #include "Camera.h"
 #include "VisualObject.h"
 #include "Utilities.h"
+#include "BallHandler.h"
 
 
 class Renderer : public QVulkanWindowRenderer
@@ -41,6 +42,7 @@ public:
 
     void pickPhysicalDevice();
 
+    BallHandler mBallHandler;
 
 protected:
 
@@ -125,6 +127,9 @@ private:
 		//VkPipelineLayout pipelineLayout{ VK_NULL_HANDLE };    //also should have had a spesific pipeline layout
         VkPipeline pipeline{ VK_NULL_HANDLE };
     } mColorMaterial;
+
+    int mBallIndex{-1};
+    VisualObject* mBallObject{nullptr}; // pointer to the sphere mesh for rendering
 
 
 };

@@ -28,6 +28,8 @@ public:
     // VulkanWindow - check gamestate, if false - moveBall()
     // If button pressed - dynamic cast move ball
 
+    const Input& input() const { return mInput; }
+
 signals:
     void frameQueued(int colorValue);
 

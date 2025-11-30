@@ -110,7 +110,12 @@ void VulkanWindow::keyPressEvent(QKeyEvent *event)
     if(event->key() == Qt::Key_Space)
     {
         mInput.SPACE = true;
-    }
+
+        if (mGamestate)
+            mGamestate = false; //make ball start to run, and disable ball from moving.
+
+        qDebug() << "Roll out your balls";
+    };
 }
 
 void VulkanWindow::keyReleaseEvent(QKeyEvent *event)
@@ -242,7 +247,7 @@ void VulkanWindow::handleInput()
     }
 }
 
-
+/*  Trying a different approach in Renderer::startNextFrame instead.
 void VulkanWindow::adjustPosition(QKeyEvent *event){
     if(mGamestate){ //rolingball - mObjects.at(2)
         if (mInput.LEFT)
@@ -253,9 +258,6 @@ void VulkanWindow::adjustPosition(QKeyEvent *event){
             dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move(0, 0, -0.1);
         if (mInput.UP)
             dynamic_cast<Renderer*>(mRenderer)->mObjects.at(2)->move(0, 0,  0.1);
-
-        if (mInput.SPACE)
-            mGamestate = false; //make ball start to run, and disable ball from moving.
     };
 };
-
+*/

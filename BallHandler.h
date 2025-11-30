@@ -39,10 +39,10 @@ public:
             mVelocity[i] += mMass[i] * gravity * dt;
             mPosition[i]  += mVelocity[i] * dt;
 
-            if (!terrain)
+            if (!terrain){
                 mVelocity[i] = QVector3D(0,0,0);
                 mPosition[i] = QVector3D(0,-0.5,0);
-                continue; // Need to write a code for what to do when the ball is off the ground;
+                continue;} // Need to write a code for what to do when the ball is off the ground;
             // Most likely going to work with an object pool so that the generated balls are re-used to spawn more balls once they roll off the edge..
 
             QVector3D normal(0.0f, 1.0f, 0.0f);
@@ -53,8 +53,8 @@ public:
             if (mPosition[i].y() < ground_height){ mPosition[i].setY(ground_height);};
 
 
-            float gN = QVector3D::dotProduct(gravity, normal);
-            QVector3D a_normal  = gN * normal;
+            float gravityNormal = QVector3D::dotProduct(gravity, normal);
+            QVector3D a_normal  = gravityNormal * normal;
             QVector3D a_tangent = gravity - a_normal;
 
 
@@ -70,7 +70,7 @@ public:
             if (speedT > 0.0001f)
             {
                 QVector3D t_hat = v_tangent / speedT;
-                float N_mag = std::fabs(gN);
+                float N_mag = std::fabs(gravityNormal);
                 a_friction = -my * N_mag * t_hat;
             }
 
@@ -95,9 +95,10 @@ public:
         // In case there's nothing to sample :
         if (verts.empty())
         {
-            if (returnNormal)
+            if (returnNormal){
                 *returnNormal = QVector3D(0.0f, 1.0f, 0.0f);
             qDebug()<< "Vertixes empty, returning " << returnNormal << "instead.";
+            }
             return 0.0f;
         }
 
