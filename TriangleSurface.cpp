@@ -49,9 +49,7 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
     // read input from math part of compulsory
     int n;
     Vertex v;
-
     // (x, y, z) (r, g, b) (u, v)
-
     inn >> n;
     for (auto i=0; i<n; i++)
     {
@@ -60,7 +58,6 @@ TriangleSurface::TriangleSurface(const std::string &filename) : VisualObject()
         //qDebug() << v.x << v.y << v.z;
     }
     inn.close();
-
     // First we triangulate, then we recalculate normals, then we shade
     // This order is very important, or the code draws nothing
 
@@ -115,16 +112,6 @@ void TriangleSurface::calculateHeightMapNormals()
         QVector3D p2(mVertices[i2].x, mVertices[i2].y, mVertices[i2].z);
 
 
-/*      Old method:
-        const Vertex &v0 = mVertices[i0];
-        const Vertex &v1 = mVertices[i1];
-        const Vertex &v2 = mVertices[i2];
-
-        QVector3D p0(v0.x, v0.y, v0.z);
-        QVector3D p1(v1.x, v1.y, v1.z);
-        QVector3D p2(v2.x, v2.y, v2.z);
-
-*/
         QVector3D e1 = p1 - p0;
         QVector3D e2 = p2 - p0;
 
@@ -140,40 +127,6 @@ void TriangleSurface::calculateHeightMapNormals()
         mNormals[i2] += NormalFace;
 
     }
-/*      No results from this one, investigation ongoing
-
-        QVector3D NormalFace = QVector3D::crossProduct(p1 - p0, p2 - p0);
-        if (!NormalFace.isNull()) NormalFace.normalize();
-
-        NormalsSum[i0] += NormalFace;
-        NormalsSum[i1] += NormalFace;
-        NormalsSum[i2] += NormalFace;
-    }
-
-    for (size_t i = 0; i < mVertices.size(); i++)
-    {
-       QVector3D NormalFace = NormalsSum[i];
-        if (!NormalFace.isNull())
-            NormalFace.normalize();
-        else
-            NormalFace = QVector3D(0,1,0);
-
-        mVertices[i].x = NormalFace.x();
-        mVertices[i].y = NormalFace.y();
-        mVertices[i].z = NormalFace.z();
-        QVector3D n = NormalsSum[i];
-        if (!n.isNull())
-            n.normalize();
-        else
-            n = QVector3D(0,1,0);
-
-        // store normal in r,g,b  (vertex layout: x,y,z,  r,g,b,  u,v)
-        mVertices[i].r = n.x();
-        mVertices[i].g = n.y();
-        mVertices[i].b = n.z();
-
-    }
-*/
 
     for (QVector3D &norm : mNormals)
     {
@@ -215,20 +168,12 @@ void TriangleSurface::applyGradient()
         float grayScaleValue;
         grayScaleValue = (mVertices[i].y - MinY) / range;
 
-        //qDebug() << "Grayscale : " << grayScaleValue; - if results are in range, it's all good
-
-        // In case code below doesn't work, use :
-        // if (grayScaleValue < 0.0f) { grayScaleValue = 0.0f;};
-        // if (grayScaleValue > 1.0f) { grayScaleValue = 1.0f;};
-
         grayScaleValue = std::clamp(grayScaleValue, 0.2f, 1.0f);
 
         mVertices[i].r = grayScaleValue;
         mVertices[i].g = grayScaleValue;
         mVertices[i].b = grayScaleValue;
     }
-
-
     qDebug() << "Gradiented";
 }
 
@@ -331,7 +276,6 @@ if (static_cast<int>(mVertices.size()) > maxN)
             edges.push_back({ t.v[1], t.v[2] });
             edges.push_back({ t.v[2], t.v[0] });
         }
-
         removeDuplicates(edges);
 
         // Removing bad triangles

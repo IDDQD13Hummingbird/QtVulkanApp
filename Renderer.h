@@ -19,6 +19,11 @@ public:
     // the buffers
     // vertex descriptions for the shaders
     // making the shaders, etc
+
+    void initBalls(); // balls, please just spawn.
+    std::vector<VisualObject*> mBallMeshes;
+    int mObjectIndex = -1;
+
     void initResources() override;
 
     //Set up resources - only MVP-matrix for now:
