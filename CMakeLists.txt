@@ -14,15 +14,15 @@ qt_add_executable(QtVulkanApp
     VisualObject.h VisualObject.cpp
     Vertex.h Vertex.cpp
     Camera.h Camera.cpp
-    Triangle.h Triangle.cpp
+
     Input.h
     WorldAxis.h WorldAxis.cpp
     Utilities.h
     stb_image.h
     stb_image.cpp
-    HeightMap.h HeightMap.cpp
+
     ObjMesh.h ObjMesh.cpp
-    rollingball.h rollingball.cpp
+
     BallHandler.h BallHandler.cpp
 )
 # Define the shader files
