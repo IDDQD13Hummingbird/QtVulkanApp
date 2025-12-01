@@ -82,12 +82,14 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
 
     //And then it's showtime
+/*
+    mBallHandler.mGlobalTime = 0.0f;
 
     for(int i = 0; i < mFluidEntityCount; i++){
 
     mBallIndex = mBallHandler.addBall(ballStartPos, ballStartVel, ballrad, ballmass);
     mBallHandler.isActive[i] = false;
-    mBallHandler.mSpawnDelay[i] = (i * mFluidSpawnInterval);
+    mBallHandler.mSpawnTime[i] = (i * mFluidSpawnInterval);
 
     mBallObject = new ObjMesh(assetPath + "sphere.obj");
     mBallObject->setName("ball"+ std::to_string(i)); //Numerated names, wow!
@@ -96,9 +98,34 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
     mObjects.push_back(mBallObject);
 
     // To make sure I didn't mess up :
-    qDebug() << "matrix: " << terrain->getMatrix();
-    qDebug() << "\n Ball starting position: " << ballStartPos;
+    qDebug() << "Pushed " << mBallObject->getName();
     }
+
+*/
+
+    //Just to test if it works if I rewrite the initializer.
+
+    int BallStartingIndex = static_cast<int>(mObjects.size());
+
+    mBallHandler.mStartPos = QVector3D(0.0f, 0.0f, 0.0f);
+
+    for (int i = 0; i < mFluidEntityCount; ++i)
+    {
+        QVector3D startPos = mBallHandler.mStartPos;
+        QVector3D startVel(0,0,0);
+
+        int ballId = mBallHandler.addBall(startPos, startVel, ballrad, ballmass);
+
+        auto* ballObj = new ObjMesh(assetPath + "sphere.obj");
+        ballObj->setName("ball"+ std::to_string(i));
+        ballObj->setPosition(startPos.x(), startPos.y(), startPos.z());
+
+        mObjects.push_back(ballObj);
+        mBallObject.push_back(ballObj);
+    }
+
+
+
 
     //mObjects.push_back(new Triangle());
     //mObjects.push_back((new TriangleSurface()));
@@ -126,7 +153,7 @@ Renderer::Renderer(QVulkanWindow *w, bool msaa)
 
 //Automatically called by Qt on Renderer startup
 
-
+//You know, maybe calling DOD elements outside of the DOD system isn't the most optimal approach.
 static void resolveCollision(QVector3D& ballPosition, QVector3D& ballVelocity, float ballRadius, const QVector3D& obstacleCenter, float obstacleRadius)
 {
     QVector3D diff = ballPosition - obstacleCenter;
@@ -433,6 +460,7 @@ void Renderer::startNextFrame()
     if (mObjects.size() > 1)
         terrain = static_cast<TriangleSurface*>(mObjects[1]);
 
+
     const Input& in = mVulkanWindow->input();
     bool preLaunch = mVulkanWindow->mGamestate;
 
@@ -440,11 +468,12 @@ void Renderer::startNextFrame()
     //for (int i = 0; i < 10; i++){
 
     // Before space is pressed :
-    if (preLaunch && mBallIndex >= 0 && terrain)
+    if (preLaunch && !mBallHandler.mPosition.empty()&& terrain)
     {
-        const size_t ballCount = mBallHandler.mPosition.size();
-        for (int i = 0; i < ballCount ; ++i){
+        // For demo resons, let's use one ball to set position :
+        int i = 0;
         QVector3D& pos = mBallHandler.mPosition[i];
+
         //qDebug()<<"Ball x : "<< pos.x() <<", z : "<< pos.z();
 
         if (in.LEFT)  { pos.setX(pos.x() - 0.1f); qDebug()<<"Moving left";};
@@ -454,23 +483,29 @@ void Renderer::startNextFrame()
 
         // readjust to be on the surface
         QVector3D normal(0.0f, 1.0f, 0.0f);
-        float temp1;
-        int temp2;
-        float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal, &temp1, &temp2);
+        float dist; // dummy values
+        int index;  // dummy values
+        float h = BallHandler::sampleHeightNeighbour(terrain, pos, &normal, &dist, &index);
         pos.setY(h + mBallHandler.mRadius[i]);
 
         mFluidSimStartPosition = pos;
+        mBallHandler.mStartPos = pos;
 
         // just to be safe, set velocity to 0 again
-        mBallHandler.mVelocity[i] = QVector3D(0, 0, 0);
-        }
+        mBallHandler.mVelocity[mBallIndex] = QVector3D(0, 0, 0);
     }
 
     // After space is pressed :
 
     if (!preLaunch && mBallIndex >= 0 && terrain)
     {
-        mBallHandler.updatePosition(dt, terrain);
+        /*if (isFluidMode) //so that I still have a choice between a ball and a stream of balls
+        {*/mBallHandler.updateFluidSim(dt, terrain);
+        qDebug()<<"Fluid mode called";/*}
+        else
+        {mBallHandler.updatePosition(dt, terrain);
+        qDebug()<<"Normal mode called";}*/
+
         //mBallHandler.mDirectionalDebug(mBallIndex);
         if (mObstacle)
         {
@@ -487,29 +522,48 @@ void Renderer::startNextFrame()
             }
         }
 
-        // Now loop the balls back to the start when they run out
+        // Where my fluid sim starts to bug out :
+        const size_t ballCount = mBallHandler.mPosition.size();
+        for (size_t i = 0; i < ballCount; i++)
+        {
+            /*
+            if (!mBallHandler.isActive[i])
+                continue;   // don't update inactive balls, essentially.
+            */
+            const QVector3D& pos = mBallHandler.mPosition[i];
 
+            if (i >= mBallObject.size())
+                qDebug()<<"Ball movement; called break";
+                break;  // Please save me from fatal crash.
+
+            VisualObject* ballObj = mBallObject[i];
+            ballObj->setPosition(pos.x(), pos.y(), pos.z());
+        }
+
+        // Now loop the balls back to the start when they run out
+        /*
         const size_t ballCount = mBallHandler.mPosition.size(); // there should be a more elegant solution, but I also want to sleep.
         for (int i = 0; i < ballCount; ++i)
         {
             if (mBallHandler.didBallGetStuck(i))
             {
                 mBallHandler.spawnBall(i, mFluidSimStartPosition);
-                mBallHandler.mSpawnDelay[i] = i * mFluidSpawnInterval; // To make stream continuous.
+                //mBallHandler.mSpawnInterval[i] = i * mFluidSpawnInterval; // To make stream continuous.
+
             }
         }
-
+        */ // Code above is no longer needed, we redid the spawning thing.
     }
 
     // Update ball VisualObject transform
-    if (mBallObject && mBallIndex >= 0)
+    if ( mBallIndex >= 0)
     {
         const size_t ballCount = mBallHandler.mPosition.size(); // No, seriously, I should plop this into .h
         for (int i = 0; i < ballCount; ++i)
         {
         //const QVector3D& pos = mBallHandler.mPosition[mBallIndex];
         const QVector3D& pos = mBallHandler.mPosition[i];
-        mBallObject[i].setPosition(pos.x(), pos.y(), pos.z());
+        mBallObject[i]->setPosition(pos.x(), pos.y(), pos.z());
         //qDebug()<<"Ball position : "<< pos; - very bad idea to run debug in a loop
         }
     }

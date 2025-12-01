@@ -35,6 +35,7 @@ public:
 
     QVector3D getPosition();
     void setPosition(float x, float y, float z);
+        void setMatrix(const QMatrix4x4& m) { mMatrix = m; }
 
 protected:
     std::vector<Vertex> mVertices;

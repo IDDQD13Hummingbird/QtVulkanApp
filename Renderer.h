@@ -138,14 +138,17 @@ private:
     } mColorMaterial;
 
     int mBallIndex{-1};
-    VisualObject* mBallObject{nullptr}; // pointer to the sphere mesh for rendering
+    std::vector<VisualObject*> mBallObject{nullptr}; // pointer to the sphere mesh for rendering
 
     VisualObject* mObstacle { nullptr };
     float mObstacleRad { 0.5f };
 
+    bool isFluidMode = true; // for fluid sim/single ball sim. I'll find a creative way to switch it with a button press.
+
     QVector3D mFluidSimStartPosition;
-    int mFluidEntityCount = 50; // Aiming for supporting 50-200 range
+    int mFluidEntityCount = 20; // Aiming for supporting 50-200 range, but my machine is weak
     float mFluidSpawnInterval = 0.2f; // seconds
+    float mFluidLoopDuration = 5.0f; // It's not a bad idea to limit it, hey
     float mFluidTime = 0.00f;
 
 
